@@ -37,8 +37,8 @@ void die_at_loc (const char *file, const char *func, int line, int errnum, const
 }
 
 static void vcarp_at_loc (int cluck, const char *file, const char *func, int line, int errnum, const char *mesg, va_list args) {
-    List *st, *l, *occurs = NULL;
-    FuncInfo *fi, *next, *suspect = NULL;
+    List *stack, *l, *occurs = NULL;
+    FuncInfo *f, *next, *suspect = NULL;
     if (mesg && mesg[0]) {
         vfprintf(stderr, mesg, args);
         if (errnum)
@@ -47,23 +47,23 @@ static void vcarp_at_loc (int cluck, const char *file, const char *func, int lin
     if (errnum) {
         fprintf(stderr, "%s", strerror(errnum));
     }
-    st = get_stack_trace();
-    for (l = st; l; l = l->next) {
-        fi = (FuncInfo *) l->data;
-        if ((fi->func && strcmp(fi->func, func) == 0) ||
-            (fi->file && strcmp(fi->file, file) == 0 && fi->line == line)) {
+    stack = get_stack_trace();
+    for (l = stack; l; l = l->next) {
+        f = (FuncInfo *) l->data;
+        if ((f->func && strcmp(f->func, func) == 0) ||
+            (f->file && strcmp(f->file, file) == 0 && f->line == line)) {
             occurs = l;
         }
-        if (occurs && !suspect && fi->file && strcmp(fi->file, file) != 0) {
+        if (occurs && !suspect && f->file && strcmp(f->file, file) != 0) {
             suspect = (FuncInfo *) l->data;
         }
     }
     if (cluck || !suspect) {
         fprintf(stderr, " at %s line %d\n", file, line);
         for (l = occurs; l; l = l->next) {
-            fi = (FuncInfo *) l->data;
-            if (fi->func)
-                fprintf(stderr, "    %s%s", fi->func, "()");
+            f = (FuncInfo *) l->data;
+            if (f->func)
+                fprintf(stderr, "    %s%s", f->func, "()");
             next = (FuncInfo *) l->next ? l->next->data : NULL;
             if (next && next->file)
                 fprintf(stderr, " called at %s line %d", next->file, next->line);
@@ -78,7 +78,7 @@ static void vcarp_at_loc (int cluck, const char *file, const char *func, int lin
     else {
         fprintf(stderr, " at %s line %d\n", suspect->file, suspect->line);
     }
-    list_free(st, func_info_free);
+    list_free(stack, func_info_free);
 }
 
 void carp_at_loc (const char *file, const char *func, int line, int errnum, const char *mesg, ...) {
