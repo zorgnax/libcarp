@@ -1,4 +1,4 @@
-#include <carp.h>
+#include "carp.h"
 #line 3 "libb"
 void foo4() {
     warn("warn");

@@ -1,30 +1,46 @@
-all: libcarp.a t/dmain t/ndmain t/test1
+-include config.mak
 
-libcarp.a: carp.c carp.h
-	gcc -c -Wall carp.c
-	ar rcs libcarp.a carp.o
+O = carp$(_O) trace$(_O) funcinfo$(_O) list$(_O)
+H = carp.h trace.h funcinfo.h list.h
 
-t/test1: t/test1.c libcarp.a
-	gcc -Wall -g -I. -L. t/test1.c -o t/test1 -lcarp
+ifdef GNU
+	TRACE = tracegdb.c
+else
+	TRACE = tracewin.c
+endif
 
-t/dmain: t/main.c t/dlib1.o t/dlib2.o libcarp.a
-	gcc -g -I. -L. t/main.c -o t/dmain t/dlib1.o t/dlib2.o -lcarp
+.PHONY: all
+all: $(CARPLIB) test
 
-t/dlib1.o: t/lib1.c libcarp.a
-	gcc -c -g -I. -L. t/lib1.c -o t/dlib1.o -lcarp
+$(CARPLIB): $(O)
+ifdef GNU
+	$(AR) rcs $(CARPLIB) $(O)
+else
+	lib /nologo /out:$(CARPLIB) $(O)
+endif
 
-t/dlib2.o: t/lib2.c libcarp.a
-	gcc -c -g -I. -L. t/lib2.c -o t/dlib2.o -lcarp
+carp$(_O): carp.c carp.h list.h funcinfo.h trace.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) carp.c
 
-t/ndmain: t/main.c t/ndlib1.o t/ndlib2.o libcarp.a
-	gcc -I. -L. t/main.c -o t/ndmain t/ndlib1.o t/ndlib2.o -lcarp
+trace$(_O): $(TRACE) trace.h list.h funcinfo.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) $(TRACE)
 
-t/ndlib1.o: t/lib1.c libcarp.a
-	gcc -c -I. -L. t/lib1.c -o t/ndlib1.o -lcarp
+funcinfo$(_O): funcinfo.c funcinfo.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) funcinfo.c
 
-t/ndlib2.o: t/lib2.c libcarp.a
-	gcc -c -I. -L. t/lib2.c -o t/ndlib2.o -lcarp
+list$(_O): list.c list.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) list.c
 
+.PHONY: test
+test:
+	$(MAKE) -C t/ all
+
+.PHONY: clean
 clean:
-	rm -vf *~ *.a *.o t/dmain t/ndmain t/test1 t/*.o t/*~
+	$(RM) -v $(CARPLIB) *.o *.obj *.lib *.pdb
+	$(MAKE) -C t/ clean
 
+.PHONY: dist
+dist:
+	rm libcarp.zip
+	zip -r libcarp *
