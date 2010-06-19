@@ -1,7 +1,6 @@
 Emulates Perl's Carp module
 http://search.cpan.org/~dapm/perl-5.10.1/lib/Carp.pm as best as possible to
-warn or die of errors in programs written in C on a machine that has gcc and 
-gdb.
+warn or die of errors in programs written in C.
 
 The following macros are defined for use:
 
@@ -72,6 +71,9 @@ confess revert to a die. However, even with debugging (gcc's -g option)
 disabled requesting a stacktrace may provide some useful information. It uses 
 files instead of packages (as Perl does) to determine the trust divide.
 
+On Windows, the stack trace is recieved by walking the stack, and getting
+return addresses, which are looked up in the pdbs if they are available.
+
 PLANS
 =====
 
@@ -83,11 +85,12 @@ so it could be redirected or debugged. This will require gathering the message
 in one big string rather than printed in pieces.
 
 A setting like NDEBUG to go to a warn or die without first trying to get a
-stack trace from gdb.
+stack trace.
 
 A setting like CONFESS_ALWAYS that changes all the others to do a full stack
 trace all the time.
 
-
+There should be a normal C function for the carp croak cluck and confess. macros
+cant be used as callbacks.
 
 
