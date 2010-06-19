@@ -206,4 +206,3 @@ List *get_stack_trace () {
 
     return stack;
 }
-

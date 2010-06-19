@@ -16,7 +16,7 @@ $(CARPLIB): $(O)
 ifdef GNU
 	$(AR) rcs $(CARPLIB) $(O)
 else
-	lib /nologo /out:$(CARPLIB) $(O)
+	lib /nologo /out:$(CARPLIB) $(O) dbghelp.lib
 endif
 
 carp$(_O): carp.c carp.h list.h funcinfo.h trace.h
@@ -37,10 +37,10 @@ test:
 
 .PHONY: clean
 clean:
-	$(RM) -v $(CARPLIB) *.o *.obj *.lib *.pdb
+	$(RM) -v $(CARPLIB) *.o *.obj *.lib *.pdb *.ilk
 	$(MAKE) -C t/ clean
 
 .PHONY: dist
 dist:
-	rm libcarp.zip
+	$(RM) -v libcarp.zip
 	zip -r libcarp *

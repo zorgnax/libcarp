@@ -13,12 +13,12 @@ O = $(O1) $(O2) $(O3)
 all: $(X) ../$(CARPLIB)
 
 test1$(_X): $(O1) ../$(CARPLIB)
-	$(CC) $(CLOUT)$@ $(O1) ../$(CARPLIB)
+	$(CC) $(CFLAGS) $(CLOUT)$@ $(O1) ../$(CARPLIB)
 
 test1$(_O): test1.c
 	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) test1.c
 
 .PHONY: clean
 clean:
-	$(RM) -v *.o *.obj *.lib *.pdb $(X)
+	$(RM) -v *.o *.obj *.lib *.pdb *.ilk $(X)
 

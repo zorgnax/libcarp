@@ -1,7 +1,6 @@
-OS := $(shell perl -e 'print $^O')
-ifneq ($(OS),MSWin32)
-	GNU = 1
-endif
+GNU = 1
+
+MAKE = make
 
 ifdef GNU
 	CFLAGS = -g -Wall
@@ -22,4 +21,3 @@ else
 	_X = .exe
 	CARPLIB = carp.lib
 endif
-

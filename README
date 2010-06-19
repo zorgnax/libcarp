@@ -79,11 +79,14 @@ Perl's Carp package reads @CARP_NOT or @ISA to determine more packages to
 trust. This library should have a similar function.
 
 Define a way to specify callbacks to occur just before the message is printed 
-so it could be redirected or debugged.
+so it could be redirected or debugged. This will require gathering the message
+in one big string rather than printed in pieces.
 
-A macro like NDEBUG to go to a warn or die without first trying to get a
+A setting like NDEBUG to go to a warn or die without first trying to get a
 stack trace from gdb.
 
+A setting like CONFESS_ALWAYS that changes all the others to do a full stack
+trace all the time.
 
 
 
