@@ -9,6 +9,14 @@
 #include "funcinfo.h"
 #include "trace.h"
 
+/* TODO
+    die(), die(""), warn(), warn("")
+    should return something like:
+    Died at ...
+    Warning: something's wrong at ...
+    
+    newline disables the line file info
+*/
 static void vwarn_at_loc (const char *file, const char *func, int line, int errnum, const char *mesg, va_list args) {
     if (mesg && mesg[0]) {
         vfprintf(stderr, mesg, args);
@@ -36,9 +44,53 @@ void die_at_loc (const char *file, const char *func, int line, int errnum, const
     exit(255);
 }
 
+/* trims off carp library specifics and elements past main  */
+static List *get_trimmed_stack_trace () {
+    List *stack, *p;
+    FuncInfo *f;
+    
+    stack = get_stack_trace();
+
+    for (p = stack; p; p = p->next) {
+        f = (FuncInfo *) p->data;
+        if (!strcmp(f->func, "get_stack_trace")) {
+            List *old_stack = stack;
+            stack = p->next->next->next;
+            p->next->next->next = NULL;
+            list_free(old_stack, func_info_free);
+            break;
+        }
+    }
+    
+    for (p = stack; p->next; p = p->next) {
+        f = (FuncInfo *) p->data;
+        if (!strcmp(f->func, "main") || !strcmp(f->func, "WinMain")) {
+            list_free(p->next, func_info_free);
+            p->next = NULL;
+            break;
+        }
+    }
+    
+    return stack;
+}
+
+void stack_dump (List *stack) {
+    List *p;
+    
+    printf("---\n");
+    for (p = stack; p; p = p->next) {
+        FuncInfo *f = (FuncInfo *) p->data;
+        func_info_print(f);
+    }
+    printf("...\n");
+}
+
 static void vcarp_at_loc (int cluck, const char *file, const char *func, int line, int errnum, const char *mesg, va_list args) {
     List *stack, *l, *occurs = NULL;
     FuncInfo *f, *next, *suspect = NULL;
+
+    stack = get_trimmed_stack_trace();
+
     if (mesg && mesg[0]) {
         vfprintf(stderr, mesg, args);
         if (errnum)
@@ -47,14 +99,14 @@ static void vcarp_at_loc (int cluck, const char *file, const char *func, int lin
     if (errnum) {
         fprintf(stderr, "%s", strerror(errnum));
     }
-    stack = get_stack_trace();
+    
     for (l = stack; l; l = l->next) {
         f = (FuncInfo *) l->data;
         if ((f->func && strcmp(f->func, func) == 0) ||
             (f->file && strcmp(f->file, file) == 0 && f->line == line)) {
             occurs = l;
         }
-        if (occurs && !suspect && f->file && strcmp(f->file, file) != 0) {
+        if (occurs && !suspect && f->file && strcmp(f->file, file)) {
             suspect = (FuncInfo *) l->data;
         }
     }

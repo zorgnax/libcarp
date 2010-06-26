@@ -3,7 +3,8 @@ GNU = 1
 MAKE = make
 
 ifdef GNU
-	CFLAGS = -g -Wall
+	CFLAGSND = -Wall
+	CFLAGS = -g $(CFLAGSND)
 	CCFLAGS = -c
 	CCOUT = -o 
 	CLOUT = -o 
@@ -12,8 +13,9 @@ ifdef GNU
 	CARPLIB = libcarp.a
 else
 	CC = cl /nologo
-	CFLAGS = /Zi /Wall /wd4255 /wd4996 /wd4127 /wd4820 \
-			/wd4100 /wd4619 /wd4514 /wd4668
+	CFLAGSND = /Wall /wd4255 /wd4996 /wd4127 /wd4820 \
+			   /wd4100 /wd4619 /wd4514 /wd4668
+	CFLAGS = /Zi $(CFLAGSND)
 	CCFLAGS = /c
 	CCOUT = /Fo
 	CLOUT = /Fe

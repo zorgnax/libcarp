@@ -3,14 +3,13 @@
 #include "funcinfo.h"
 
 void func_info_print (FuncInfo *fi) {
-    printf("fi: addr=%p, func=%s, args=%s\n"
+    printf("fi: func=%s, args=%s\n"
            "    file=%s, line=%d, lib=%s\n",
-           fi->addr,
-           fi->func ? fi->func : "NULL",
-           fi->args ? fi->args : "NULL",
-           fi->file ? fi->file : "NULL",
+           fi->func,
+           fi->args,
+           fi->file,
            fi->line,
-           fi->lib  ? fi->lib  : "NULL");
+           fi->lib);
 }
 
 void func_info_free (FuncInfo *fi) {

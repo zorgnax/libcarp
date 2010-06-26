@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include <carp.h>
+#include "carp.h"
 
 int main() {
+    setvbuf(stdout, NULL, _IONBF, 0);
     carp("Hello World!");
     hello("red balloon");
     hello("light");
