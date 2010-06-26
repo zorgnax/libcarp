@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+use 5.010;
+$| = 1;
+
+package lib1;
+use Carp qw/carp cluck/;
+lib2->import;
+
+sub import {
+    *{caller() . '::hello'} = \&hello;
+}
+
+sub hello {
+    given (shift) {
+        when (undef) {
+            carp "Attempted to greet an undefined thing";
+        }
+        when (\&it_doesnt_make_any_sense) {
+            cluck "Yet I'll do it anyway!!";
+            continue;
+        }
+        default {
+            say "Hello $_.\n";
+        }
+    }
+}
+
+package lib2;
+use Carp qw/carp cluck/;
+
+sub import {
+    *{caller() . '::it_doesnt_make_any_sense'} = \&it_doesnt_make_any_sense;
+    *{caller() . '::goodnight'} = \&goodnight;
+}
+
+sub it_doesnt_make_any_sense {
+    local $_ = shift;
+    when ([qw/room moon light/, 'cow jumping over the moon', 'red balloon']) {
+        carp "It wouldn't make no sense to say goodnight to a $_";
+        return 1;
+    }
+    0;
+}
+
+sub goodnight {
+    given (shift) {
+        when (undef) {
+            carp "Attempted to say goodnight to an undef thing";
+        }
+        when (\&it_doesnt_make_any_sense) {
+            cluck "Yet I'll do it anyway!!";
+            continue;
+        }
+        default {
+            say "Goodnight $_.\n";
+        }
+    }
+}
+
+package main;
+use strict;
+use warnings;
+use Carp;
+
+BEGIN {
+    lib1->import;
+    lib2->import;
+}
+
+carp "Hello World!";
+hello "red balloon";
+hello "light";
+hello "cow jumping over the moon";
+hello "moon";
+hello "room";
+hello undef;
+goodnight "room";
+goodnight "moon";
+goodnight "cow jumping over the moon";
+goodnight "light";
+goodnight undef;
+goodnight "red balloon";
+
