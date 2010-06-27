@@ -55,8 +55,9 @@ static List *get_trimmed_stack_trace () {
         f = (FuncInfo *) p->data;
         if (!strcmp(f->func, "get_stack_trace")) {
             List *old_stack = stack;
-            stack = p->next->next->next;
-            p->next->next->next = NULL;
+            /* Am I assuming too much?  */
+            stack = p->next->next->next->next;
+            p->next->next->next->next = NULL;
             list_free(old_stack, func_info_free);
             break;
         }
@@ -85,11 +86,29 @@ void stack_dump (List *stack) {
     printf("...\n");
 }
 
-static void vcarp_at_loc (int cluck, const char *file, const char *func, int line, int errnum, const char *mesg, va_list args) {
-    List *stack, *l, *occurs = NULL;
-    FuncInfo *f, *next, *suspect = NULL;
+/* strcmp that handles NULL values */
+static int mystrcmp (char *a, char *b) {
+    return a == b ? 0 : !a ? -1 : !b ? 1 : strcmp(a, b);
+}
 
-    stack = get_trimmed_stack_trace();
+static FuncInfo *get_suspect (List *stack) {
+    List *p;
+    FuncInfo *occurs = stack->data;
+
+    for (p = stack; p; p = p->next) {
+        FuncInfo *f = p->data;
+        if (mystrcmp(f->lib, occurs->lib) || mystrcmp(f->file, occurs->file))
+            return f;
+    }
+    
+    /* Without a suspect, default to where the error occured  */
+    return occurs;
+}
+
+static void vcarp_at_loc (int cluck, const char *file, const char *func, int line, int errnum, const char *mesg, va_list args) {
+    List *stack = get_trimmed_stack_trace();
+
+    /* stack_dump(stack);  */
 
     if (mesg && mesg[0]) {
         vfprintf(stderr, mesg, args);
@@ -99,37 +118,36 @@ static void vcarp_at_loc (int cluck, const char *file, const char *func, int lin
     if (errnum) {
         fprintf(stderr, "%s", strerror(errnum));
     }
-    
-    for (l = stack; l; l = l->next) {
-        f = (FuncInfo *) l->data;
-        if ((f->func && strcmp(f->func, func) == 0) ||
-            (f->file && strcmp(f->file, file) == 0 && f->line == line)) {
-            occurs = l;
-        }
-        if (occurs && !suspect && f->file && strcmp(f->file, file)) {
-            suspect = (FuncInfo *) l->data;
-        }
-    }
-    if (cluck || !suspect) {
-        fprintf(stderr, " at %s line %d\n", file, line);
-        for (l = occurs; l; l = l->next) {
-            f = (FuncInfo *) l->data;
-            if (f->func)
-                fprintf(stderr, "    %s%s", f->func, "()");
-            next = (FuncInfo *) l->next ? l->next->data : NULL;
-            if (next && next->file)
-                fprintf(stderr, " called at %s line %d", next->file, next->line);
-            if (next && next->lib)
-                fprintf(stderr, " from %s", next->lib);
+
+    if (cluck) {
+        List *cur, *prev;
+        
+        for (prev = NULL, cur = stack; cur; prev = cur, cur = cur->next) {
+            FuncInfo *prevf = prev ? prev->data : NULL;
+            FuncInfo *curf = cur->data;
+            
+            if (prevf)
+                fprintf(stderr, "    %s() called", prevf->func);
+            
+            if (curf->file)
+                fprintf(stderr, " at %s line %d", curf->file, curf->line);
+            else if (!prev)
+                fprintf(stderr, " at %s line %d", file, line);
+            
+            if (curf->lib)
+                fprintf(stderr, " from %s", curf->lib);
+            
             fprintf(stderr, "\n");
         }
     }
-    else if (!suspect) {
-        fprintf(stderr, " at %s line %d\n", file, line);
-    }
     else {
-        fprintf(stderr, " at %s line %d\n", suspect->file, suspect->line);
+        FuncInfo *suspect = get_suspect(stack);
+        if (!suspect || !suspect->file)
+            fprintf(stderr, " at %s line %d\n", file, line);
+        else
+            fprintf(stderr, " at %s line %d\n", suspect->file, suspect->line);
     }
+
     list_free(stack, func_info_free);
 }
 

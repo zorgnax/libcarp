@@ -52,13 +52,11 @@ Results in:
         foo3() called at liba line 10
         foo2() called at liba line 11
         foo1() called at test1.c line 21
-        main()
     warn at liba line 13
     carp at test1.c line 22
     cluck at liba line 15
         bar2() called at liba line 18
         bar1() called at test1.c line 22
-        main()
     croak at test1.c line 22
 
 
