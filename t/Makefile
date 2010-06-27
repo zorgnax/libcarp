@@ -44,5 +44,5 @@ not-debugged-lib2$(_O): lib2.c
 
 .PHONY: clean
 clean:
-	$(RM) -v *.o *.obj *.lib *.pdb *.ilk $(X)
+	$(RM) -rv *.o *.obj *.lib *.pdb *.ilk $(X) _C
 

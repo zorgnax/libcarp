@@ -9,37 +9,45 @@
 #include "funcinfo.h"
 #include "trace.h"
 
-/* TODO
-    die(), die(""), warn(), warn("")
-    should return something like:
-    Died at ...
-    Warning: something's wrong at ...
-    
-    newline disables the line file info
-*/
-static void vwarn_at_loc (const char *file, const char *func, int line, int errnum, const char *mesg, va_list args) {
+typedef enum {
+    CLUCK = 1 << 0,
+    DIE   = 1 << 1
+} CarpFlags;
+
+/*TODO newline should disable the file line backtrace madness */
+static void vcarp_message (const char *mesg, va_list args, int errnum, CarpFlags flags) {
     if (mesg && mesg[0]) {
         vfprintf(stderr, mesg, args);
         if (errnum)
-            fprintf(stderr, ": ");
+            fprintf(stderr, ": %s", strerror(errnum));
     }
-    if (errnum) {
+    else if (errnum) {
         fprintf(stderr, "%s", strerror(errnum));
     }
+    else if (flags & DIE) {
+        fprintf(stderr, "Died");
+    }
+    else {
+        fprintf(stderr, "Warning: something's wrong");
+    }
+}
+
+static void vwarn_at_loc (CarpFlags flags, const char *file, const char *func, int line, int errnum, const char *mesg, va_list args) {
+    vcarp_message(mesg, args, errnum, flags);
     fprintf(stderr, " at %s line %d\n", file, line);
 }
 
 void warn_at_loc (const char *file, const char *func, int line, int errnum, const char *mesg, ...) {
     va_list args;
     va_start(args, mesg);
-    vwarn_at_loc(file, func, line, errnum, mesg, args);
+    vwarn_at_loc(0, file, func, line, errnum, mesg, args);
     va_end(args);
 }
 
 void die_at_loc (const char *file, const char *func, int line, int errnum, const char *mesg, ...) {
     va_list args;
     va_start(args, mesg);
-    vwarn_at_loc(file, func, line, errnum, mesg, args);
+    vwarn_at_loc(DIE, file, func, line, errnum, mesg, args);
     va_end(args);
     exit(255);
 }
@@ -86,7 +94,7 @@ void stack_dump (List *stack) {
     printf("...\n");
 }
 
-/* strcmp that handles NULL values */
+/* A strcmp that handles NULL values */
 static int mystrcmp (char *a, char *b) {
     return a == b ? 0 : !a ? -1 : !b ? 1 : strcmp(a, b);
 }
@@ -105,21 +113,14 @@ static FuncInfo *get_suspect (List *stack) {
     return occurs;
 }
 
-static void vcarp_at_loc (int cluck, const char *file, const char *func, int line, int errnum, const char *mesg, va_list args) {
+static void vcarp_at_loc (CarpFlags flags, const char *file, const char *func, int line, int errnum, const char *mesg, va_list args) {
     List *stack = get_trimmed_stack_trace();
 
     /* stack_dump(stack);  */
 
-    if (mesg && mesg[0]) {
-        vfprintf(stderr, mesg, args);
-        if (errnum)
-            fprintf(stderr, ": ");
-    }
-    if (errnum) {
-        fprintf(stderr, "%s", strerror(errnum));
-    }
+    vcarp_message(mesg, args, errnum, flags);
 
-    if (cluck) {
+    if (flags & CLUCK) {
         List *cur, *prev;
         
         for (prev = NULL, cur = stack; cur; prev = cur, cur = cur->next) {
@@ -161,7 +162,7 @@ void carp_at_loc (const char *file, const char *func, int line, int errnum, cons
 void croak_at_loc (const char *file, const char *func, int line, int errnum, const char *mesg, ...) {
     va_list args;
     va_start(args, mesg);
-    vcarp_at_loc(0, file, func, line, errnum, mesg, args);
+    vcarp_at_loc(DIE, file, func, line, errnum, mesg, args);
     va_end(args);
     exit(255);
 }
@@ -169,14 +170,14 @@ void croak_at_loc (const char *file, const char *func, int line, int errnum, con
 void cluck_at_loc (const char *file, const char *func, int line, int errnum, const char *mesg, ...) {
     va_list args;
     va_start(args, mesg);
-    vcarp_at_loc(1, file, func, line, errnum, mesg, args);
+    vcarp_at_loc(CLUCK, file, func, line, errnum, mesg, args);
     va_end(args);
 }
 
 void confess_at_loc (const char *file, const char *func, int line, int errnum, const char *mesg, ...) {
     va_list args;
     va_start(args, mesg);
-    vcarp_at_loc(1, file, func, line, errnum, mesg, args);
+    vcarp_at_loc(CLUCK | DIE, file, func, line, errnum, mesg, args);
     va_end(args);
     exit(255);
 }

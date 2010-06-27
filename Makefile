@@ -37,7 +37,7 @@ test:
 
 .PHONY: clean
 clean:
-	$(RM) -v $(CARPLIB) *.o *.obj *.lib *.pdb *.ilk
+	$(RM) -rv $(CARPLIB) *.o *.obj *.lib *.pdb *.ilk _C
 	$(MAKE) -C t/ clean
 
 .PHONY: dist
