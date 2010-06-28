@@ -76,20 +76,33 @@ void die_at_loc (const char *file, const char *func, int line, int errnum, const
     exit(255);
 }
 
+void stack_dump (List *stack) {
+    List *p;
+    
+    printf("---\n");
+    for (p = stack; p; p = p->next) {
+        FuncInfo *f = (FuncInfo *) p->data;
+        func_info_print(f);
+    }
+    printf("...\n");
+}
+
 /* trims off carp library specifics and elements past main  */
 static List *get_trimmed_stack_trace () {
     List *stack, *p;
     FuncInfo *f;
     
     stack = get_stack_trace();
+    if (!stack)
+        return NULL;
 
     for (p = stack; p; p = p->next) {
         f = (FuncInfo *) p->data;
-        if (!strcmp(f->func, "get_stack_trace")) {
+        if (!strcmp(f->func, "vcarp_at_loc")) {
             List *old_stack = stack;
             /* Am I assuming too much?  */
-            stack = p->next->next->next->next;
-            p->next->next->next->next = NULL;
+            stack = p->next->next;
+            p->next->next = NULL;
             list_free(old_stack, func_info_free);
             break;
         }
@@ -105,17 +118,6 @@ static List *get_trimmed_stack_trace () {
     }
     
     return stack;
-}
-
-void stack_dump (List *stack) {
-    List *p;
-    
-    printf("---\n");
-    for (p = stack; p; p = p->next) {
-        FuncInfo *f = (FuncInfo *) p->data;
-        func_info_print(f);
-    }
-    printf("...\n");
 }
 
 /* A strcmp that handles NULL values */
@@ -138,9 +140,17 @@ static FuncInfo *get_suspect (List *stack) {
 }
 
 static void vcarp_at_loc (CarpFlags flags, const char *file, const char *func, int line, int errnum, const char *fmt, va_list args) {
-    List *stack = get_trimmed_stack_trace();
-    char *mesg = vcarp_message(fmt, args, errnum, flags);
+    List *stack;
+    char *mesg;
 
+    stack = get_trimmed_stack_trace();
+    if (!stack) {
+        vwarn_at_loc(flags, file, func, line, errnum, fmt, args);
+        return;
+    }
+    
+    mesg = vcarp_message(fmt, args, errnum, flags);
+    
     if (flags & CLUCK) {
         List *cur, *prev;
         

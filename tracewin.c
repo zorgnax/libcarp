@@ -58,9 +58,10 @@ List *get_stack_trace () {
         symbol = calloc(1, size);
         symbol->MaxNameLen = 1000;
         if (!SymFromAddr(process, pc, 0, symbol)) {
-            printf("pc at 0x%p\n", pc);
-            fprintf(stderr, "SymFromAddr() error %d\n", GetLastError());
-            //exit(255);
+            list_free(stack, func_info_free);
+            stack = NULL;
+            free(symbol);
+            break;
         }
         
         /* line  */
