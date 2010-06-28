@@ -17,12 +17,14 @@
 #define confess(...)   confess_at_loc  (__FILE__, __FUNCTION__, __LINE__, 0,     ## __VA_ARGS__, NULL);
 #define econfess(...)  confess_at_loc  (__FILE__, __FUNCTION__, __LINE__, errno, ## __VA_ARGS__, NULL);
 
-void warn_at_loc     (const char *file, const char *func, int line, int errnum, const char *mesg, ...);
-void die_at_loc      (const char *file, const char *func, int line, int errnum, const char *mesg, ...);
-void carp_at_loc     (const char *file, const char *func, int line, int errnum, const char *mesg, ...);
-void croak_at_loc    (const char *file, const char *func, int line, int errnum, const char *mesg, ...);
-void cluck_at_loc    (const char *file, const char *func, int line, int errnum, const char *mesg, ...);
-void confess_at_loc  (const char *file, const char *func, int line, int errnum, const char *mesg, ...);
+void warn_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+void die_at_loc      (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+void carp_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+void croak_at_loc    (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+void cluck_at_loc    (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+void confess_at_loc  (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+
+typedef void (*CarpOutputFunc) (const char *mesg);
 
 #endif
 

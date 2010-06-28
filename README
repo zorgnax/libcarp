@@ -80,15 +80,13 @@ trust. This library should have a similar function.
 
 Define a way to specify callbacks to occur just before the message is printed 
 so it could be redirected or debugged. This will require gathering the message
-in one big string rather than printed in pieces.
+in one big string rather than printed in pieces. carp_set_output_func()
 
 A setting like NDEBUG to go to a warn or die without first trying to get a
-stack trace.
+stack trace. carp_never_confess()
 
 A setting like CONFESS_ALWAYS that changes all the others to do a full stack
-trace all the time.
+trace all the time. carp_always_confess()
 
-There should be a normal C function for the carp croak cluck and confess. macros
-cant be used as callbacks.
-
+There should be a a way to return strings, rather than print.
 
