@@ -1,6 +1,7 @@
 #ifndef __CARP_H__
 #define __CARP_H__
 
+#include <stdio.h>
 #include <errno.h>
 
 #define warn(...)      warn_at_loc     (__FILE__, __FUNCTION__, __LINE__, 0,     ## __VA_ARGS__, NULL);
