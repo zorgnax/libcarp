@@ -14,6 +14,10 @@ The following macros are defined for use:
 There are also the macros ewarn, edie, ecarp, ecroak, ecluck, econfess which
 work just like the previous macros but add an errno string to your message.
 
+There are also the macros swarn, sdie, scarp, scroak, scluck, sconfess, eswarn,
+esdie, escroak, escluck, and esconfess that return the string the original
+macro would have outputted. The s* variants will not exit the program. The
+returned string will need to be freed.
 
 SYNOPSIS
 ========
