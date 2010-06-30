@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include "carp.h"
 
-int main() {
+void hello (const char *);
+void goodnight (const char *);
+
+int main () {
     setvbuf(stdout, NULL, _IONBF, 0);
     carp("Hello World!");
     hello("red balloon");

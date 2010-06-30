@@ -1,7 +1,9 @@
 #include <stdio.h>
-#include <carp.h>
+#include "carp.h"
 
-void hello(const char *thing_to_greet) {
+int it_doesnt_make_any_sense (const char *);
+
+void hello (const char *thing_to_greet) {
     if (!thing_to_greet) {
         carp("Attempted to greet a NULL thing");
         return;
