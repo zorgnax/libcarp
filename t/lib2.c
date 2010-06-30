@@ -3,11 +3,11 @@
 #include "carp.h"
 
 int it_doesnt_make_any_sense (const char *thing_to_say_goodnight_to) {
-    if (strcmp(thing_to_say_goodnight_to, "room")                == 0
-    ||  strcmp(thing_to_say_goodnight_to, "moon")                   == 0
-    ||  strcmp(thing_to_say_goodnight_to, "cow jumping over the moon") == 0
-    ||  strcmp(thing_to_say_goodnight_to, "light")                  == 0
-    ||  strcmp(thing_to_say_goodnight_to, "red balloon")         == 0)
+    if (!strcmp(thing_to_say_goodnight_to, "room") ||
+        !strcmp(thing_to_say_goodnight_to, "moon") ||
+        !strcmp(thing_to_say_goodnight_to, "cow jumping over the moon") ||
+        !strcmp(thing_to_say_goodnight_to, "light") ||
+        !strcmp(thing_to_say_goodnight_to, "red balloon"))
     {
         carp("It wouldn't make no sense to say goodnight to a %s",
             thing_to_say_goodnight_to);
