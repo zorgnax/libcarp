@@ -90,7 +90,7 @@ static void init () {
 
     output = output_builtin;
     if (!mystrcmp(getenv("CARP_OUTPUT"), "color"))
-        die("Color output unimplemented");
+        die("Color output has not been implemented yet");
 
     always_confess = getintenv("CARP_ALWAYS_CONFESS");
     always_warn    = getintenv("CARP_ALWAYS_WARN");

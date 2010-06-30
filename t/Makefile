@@ -2,9 +2,9 @@
 
 CFLAGSND += -I..
 
-X = test1$(_X) debugged-main$(_X) not-debugged-main$(_X)
+X = synopsis$(_X) debugged-main$(_X) not-debugged-main$(_X)
 
-O1 = test1$(_O)
+O1 = synopsis$(_O)
 O2 = debugged-main$(_O) debugged-lib1$(_O) debugged-lib2$(_O)
 O3 = not-debugged-main$(_O) not-debugged-lib1$(_O) not-debugged-lib2$(_O)
 O = $(O1) $(O2) $(O3)
@@ -12,11 +12,11 @@ O = $(O1) $(O2) $(O3)
 .PHONY: all
 all: $(X) ../$(CARPLIB)
 
-test1$(_X): $(O1) ../$(CARPLIB)
+synopsis$(_X): $(O1) ../$(CARPLIB)
 	$(CC) $(CFLAGS) $(CLOUT)$@ $(O1) ../$(CARPLIB)
 
-test1$(_O): test1.c
-	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) test1.c
+synopsis$(_O): synopsis.c
+	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) synopsis.c
 
 debugged-main$(_X): $(O2) ../$(CARPLIB)
 	$(CC) $(CFLAGS) $(CLOUT)$@ $(O2) ../$(CARPLIB)
