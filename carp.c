@@ -98,6 +98,7 @@ static void init () {
     strip          = getintenv("CARP_STRIP");
     
     /* TODO init trusted libs and files  */
+    trusted_files = trusted_libs = NULL;
 }
 
 /* Appends a formatted string to a string. The result must be freed. */
