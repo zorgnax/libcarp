@@ -13,7 +13,92 @@ static void output_builtin (const char *mesg) {
     fputs(mesg, stderr);
 }
 
-static CarpOutputFunc output = output_builtin;
+static int             always_confess  = 0;
+static int             always_warn     = 0;
+static int             dump_stack      = 0;
+static CarpOutputFunc  output          = output_builtin;
+static int             strip           = 0;
+static List           *trusted_files   = NULL;
+static List           *trusted_libs    = NULL;
+
+static void init ();
+
+/*
+carp settings
+
+"always-confess" int
+All macros show the full stack trace.
+Defaults to environment var CARP_ALWAYS_CONFESS
+
+"always-warn" int
+Stack trace is never performed.
+Defaults to environment var CARP_ALWAYS_WARN
+
+"dump-stack" int
+Print as much info as you can about the stack.
+Defaults to environment var CARP_DUMP_STACK
+
+"output" char*
+may be "default" or "color" as builtin output funcs.
+Defaults to environment var CARP_OUTPUT
+
+"output-func" func
+A CarpOutputFunc to output the error message.
+
+"strip" int
+The number of items to remove from the file names.
+Defaults to environment var CARP_STRIP
+
+"suspected-files" char*
+Comma separated list of file names to remove from the list of trusted files.
+
+"suspected-libs" char*
+Comma separated list of lib names to remove from the list of trusted libs.
+
+"trusted-files" char*
+Comma separated list of file names to be trusted.
+Defaults to environment var CARP_TRUSTED_FILES
+
+"trusted-libs" char*
+Comma separated list of lib names to be trusted.
+Defaults to environment var CARP_TRUSTED_LIBS
+
+*/
+void carp_set (const char *key, ...) {
+    va_list args;
+    init();
+    va_start(args, key);
+    
+    va_end(args);
+}
+
+/* A strcmp that handles NULL values */
+static int mystrcmp (char *a, char *b) {
+    return a == b ? 0 : !a ? -1 : !b ? 1 : strcmp(a, b);
+}
+
+static int getintenv (const char *var) {
+    char *val = getenv(var);
+    return val ? atoi(val) : 0;
+}
+
+static void init () {
+    static int init = 0;
+    
+    if (init++)
+        return;
+
+    output = output_builtin;
+    if (!mystrcmp(getenv("CARP_OUTPUT"), "color"))
+        die("Color output unimplemented");
+
+    always_confess = getintenv("CARP_ALWAYS_CONFESS");
+    always_warn    = getintenv("CARP_ALWAYS_WARN");
+    dump_stack     = getintenv("CARP_DUMP_STACK");
+    strip          = getintenv("CARP_STRIP");
+    
+    /* TODO init trusted libs and files  */
+}
 
 /* Appends a formatted string to a string. The result must be freed. */
 static char *vappend (char *str, const char *fmt, va_list args) {
@@ -40,6 +125,7 @@ typedef enum {
 /* TODO newline should disable the file line backtrace madness  */
 static char *vcarp_message (const char *fmt, va_list args, int errnum, CarpFlags flags) {
     char *mesg = NULL;
+    init();
     if (fmt && *fmt) {
         mesg = vappend(mesg, fmt, args);
         if (errnum)
@@ -55,7 +141,8 @@ static char *vcarp_message (const char *fmt, va_list args, int errnum, CarpFlags
 }
 
 static char *vswarn_at_loc (CarpFlags flags, const char *file, const char *func, int line, int errnum, const char *fmt, va_list args) {
-    char *mesg = vcarp_message(fmt, args, errnum, flags);
+    char *mesg;
+    mesg = vcarp_message(fmt, args, errnum, flags);
     mesg = append(mesg, " at %s line %d\n", file, line);
     return mesg;
 }
@@ -145,11 +232,6 @@ static List *get_trimmed_stack_trace () {
     return stack;
 }
 
-/* A strcmp that handles NULL values */
-static int mystrcmp (char *a, char *b) {
-    return a == b ? 0 : !a ? -1 : !b ? 1 : strcmp(a, b);
-}
-
 static FuncInfo *get_suspect (List *stack) {
     List *p;
     FuncInfo *occurs = stack->data;
@@ -166,13 +248,11 @@ static FuncInfo *get_suspect (List *stack) {
 
 static char *vscarp_at_loc (CarpFlags flags, const char *file, const char *func, int line, int errnum, const char *fmt, va_list args) {
     List *stack;
-    char *mesg;
+    char *mesg = vcarp_message(fmt, args, errnum, flags);
 
     stack = get_trimmed_stack_trace();
     if (!stack)
-        return vswarn_at_loc(flags, file, func, line, errnum, fmt, args);
-
-    mesg = vcarp_message(fmt, args, errnum, flags);
+        return append(mesg, " at %s line %d\n", file, line);
 
     if (flags & CLUCK) {
         List *cur, *prev;

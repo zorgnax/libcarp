@@ -43,6 +43,7 @@ char *scluck_at_loc    (const char *file, const char *func, int line, int errnum
 char *sconfess_at_loc  (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
 
 typedef void (*CarpOutputFunc) (const char *mesg);
+void carp_set (const char *key, ...);
 
 #endif
 
