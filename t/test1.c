@@ -12,7 +12,7 @@ void foo1() {foo2();}
 void bar2() {
     warn("warn");
     carp("carp");
-    cluck("cluck");
+    confess("confess");
     croak("croak");
 }
 void bar1() {bar2();}

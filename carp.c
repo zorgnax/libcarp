@@ -64,6 +64,8 @@ static void vwarn_at_loc (CarpFlags flags, const char *file, const char *func, i
     char *mesg = vswarn_at_loc(flags, file, func, line, errnum, fmt, args);
     output(mesg);
     free(mesg);
+    if (flags & DIE)
+        exit(255);
 }
 
 char *swarn_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
@@ -210,6 +212,8 @@ static void vcarp_at_loc (CarpFlags flags, const char *file, const char *func, i
     char *mesg = vscarp_at_loc(flags, file, func, line, errnum, fmt, args);
     output(mesg);
     free(mesg);
+    if (flags & DIE)
+        exit(255);
 }
 
 char *scarp_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
@@ -242,7 +246,6 @@ void croak_at_loc (const char *file, const char *func, int line, int errnum, con
     va_start(args, fmt);
     vcarp_at_loc(DIE, file, func, line, errnum, fmt, args);
     va_end(args);
-    exit(255);
 }
 
 char *scluck_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
@@ -275,7 +278,6 @@ void confess_at_loc (const char *file, const char *func, int line, int errnum, c
     va_start(args, fmt);
     vcarp_at_loc(CLUCK | DIE, file, func, line, errnum, fmt, args);
     va_end(args);
-    exit(255);
 }
 
 

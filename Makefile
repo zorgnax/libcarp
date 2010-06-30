@@ -10,7 +10,8 @@ else
 endif
 
 .PHONY: all
-all: $(CARPLIB) test
+all: $(CARPLIB)
+	$(MAKE) -C t/ all
 
 $(CARPLIB): $(O)
 ifdef GNU
@@ -30,10 +31,6 @@ funcinfo$(_O): funcinfo.c funcinfo.h
 
 list$(_O): list.c list.h
 	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) list.c
-
-.PHONY: test
-test:
-	$(MAKE) -C t/ all
 
 .PHONY: clean
 clean:
