@@ -9,15 +9,24 @@
 #include "funcinfo.h"
 #include "trace.h"
 
+static void output_builtin (const char *mesg) {
+    fputs(mesg, stderr);
+}
+
 static int             always_confess  = 0;
 static int             always_warn     = 0;
 static int             dump_stack      = 0;
-static CarpOutputFunc  output          = NULL;
+static CarpOutputFunc  output          = output_builtin;
 static int             strip           = 0;
 static List           *trusted_files   = NULL;
 static List           *trusted_libs    = NULL;
 
 static void init ();
+
+/* A strcmp that handles NULL values */
+static int mystrcmp (const char *a, const char *b) {
+    return a == b ? 0 : !a ? -1 : !b ? 1 : strcmp(a, b);
+}
 
 /*
 carp settings
@@ -64,22 +73,57 @@ void carp_set (const char *key, ...) {
     va_list args;
     init();
     va_start(args, key);
-    
+    for (; key; key = va_arg(args, const char *)) {
+        if (!strcmp(key, "always-confess")) {
+            always_confess = va_arg(args, int);
+        }
+        else if (!strcmp(key, "always-warn")) {
+            always_warn = va_arg(args, int);
+        }
+        else if (!strcmp(key, "dump-stack")) {
+            dump_stack = va_arg(args, int);
+        }
+        else if (!strcmp(key, "output")) {
+            const char *value = va_arg(args, const char *);
+            if (!value || !mystrcmp(value, "default"))
+                output = output_builtin;
+            else if (!mystrcmp(value, "color"))
+                croak("Color output has not been implemented yet");
+            else
+                croak("Unknown output builtin '%s'", value);
+        }
+        else if (!strcmp(key, "output-func")) {
+            output = va_arg(args, CarpOutputFunc);
+        }
+        else if (!strcmp(key, "strip")) {
+            strip = va_arg(args, int);
+        }
+        else if (!strcmp(key, "suspected-files")) {
+            trusted_files = NULL;
+            /* TODO  */
+        }
+        else if (!strcmp(key, "suspected-libs")) {
+            trusted_libs = NULL;
+            /* TODO  */
+        }
+        else if (!strcmp(key, "trusted-files")) {
+            trusted_files = NULL;
+            /* TODO  */
+        }
+        else if (!strcmp(key, "trusted-libs")) {
+            trusted_libs = NULL;
+            /* TODO  */
+        }
+        else {
+            croak("Unknown setting name '%s'", key);
+        }
+    }
     va_end(args);
-}
-
-/* A strcmp that handles NULL values */
-static int mystrcmp (char *a, char *b) {
-    return a == b ? 0 : !a ? -1 : !b ? 1 : strcmp(a, b);
 }
 
 static int getintenv (const char *var) {
     char *val = getenv(var);
     return val ? atoi(val) : 0;
-}
-
-static void output_builtin (const char *mesg) {
-    fputs(mesg, stderr);
 }
 
 static void init () {
@@ -88,17 +132,14 @@ static void init () {
     if (init++)
         return;
 
-    output = output_builtin;
-    if (!mystrcmp(getenv("CARP_OUTPUT"), "color"))
-        die("Color output has not been implemented yet");
-
-    always_confess = getintenv("CARP_ALWAYS_CONFESS");
-    always_warn    = getintenv("CARP_ALWAYS_WARN");
-    dump_stack     = getintenv("CARP_DUMP_STACK");
-    strip          = getintenv("CARP_STRIP");
-    
-    /* TODO init trusted libs and files  */
-    trusted_files = trusted_libs = NULL;
+    carp_set(
+        "output",         getenv   ("CARP_OUTPUT"),
+        "always-confess", getintenv("CARP_ALWAYS_CONFESS"),
+        "always-warn",    getintenv("CARP_ALWAYS_WARN"),
+        "dump-stack",     getintenv("CARP_DUMP_STACK"),
+        "strip",          getintenv("CARP_STRIP"),
+        NULL
+    );
 }
 
 /* Appends a formatted string to a string. The result must be freed. */
@@ -224,7 +265,7 @@ static FuncInfo *get_suspect (List *stack) {
 
     for (p = stack; p; p = p->next) {
         FuncInfo *f = p->data;
-        if (mystrcmp(f->lib, occurs->lib) || mystrcmp(f->file, occurs->file))
+        if (mystrcmp(f->lib, occurs->lib))
             return f;
     }
     
