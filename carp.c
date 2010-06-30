@@ -9,14 +9,10 @@
 #include "funcinfo.h"
 #include "trace.h"
 
-static void output_builtin (const char *mesg) {
-    fputs(mesg, stderr);
-}
-
 static int             always_confess  = 0;
 static int             always_warn     = 0;
 static int             dump_stack      = 0;
-static CarpOutputFunc  output          = output_builtin;
+static CarpOutputFunc  output          = NULL;
 static int             strip           = 0;
 static List           *trusted_files   = NULL;
 static List           *trusted_libs    = NULL;
@@ -82,6 +78,10 @@ static int getintenv (const char *var) {
     return val ? atoi(val) : 0;
 }
 
+static void output_builtin (const char *mesg) {
+    fputs(mesg, stderr);
+}
+
 static void init () {
     static int init = 0;
     
@@ -124,7 +124,11 @@ typedef enum {
 } CarpFlags;
 
 /* TODO newline should disable the file line backtrace madness  */
-static char *vcarp_message (const char *fmt, va_list args, int errnum, CarpFlags flags) {
+static char *vcarp_message (const char *fmt,
+                            va_list     args,
+                            int         errnum,
+                            CarpFlags   flags)
+{
     char *mesg = NULL;
     init();
     if (fmt && *fmt) {
@@ -141,14 +145,28 @@ static char *vcarp_message (const char *fmt, va_list args, int errnum, CarpFlags
     return mesg;
 }
 
-static char *vswarn_at_loc (CarpFlags flags, const char *file, const char *func, int line, int errnum, const char *fmt, va_list args) {
+static char *vswarn_at_loc (CarpFlags   flags,
+                            const char *file,
+                            const char *func,
+                            int         line,
+                            int         errnum,
+                            const char *fmt,
+                            va_list     args)
+{
     char *mesg;
     mesg = vcarp_message(fmt, args, errnum, flags);
     mesg = append(mesg, " at %s line %d\n", file, line);
     return mesg;
 }
 
-static void vwarn_at_loc (CarpFlags flags, const char *file, const char *func, int line, int errnum, const char *fmt, va_list args) {
+static void vwarn_at_loc (CarpFlags   flags,
+                          const char *file,
+                          const char *func,
+                          int         line,
+                          int         errnum,
+                          const char *fmt,
+                          va_list     args)
+{
     char *mesg = vswarn_at_loc(flags, file, func, line, errnum, fmt, args);
     output(mesg);
     free(mesg);
@@ -156,7 +174,12 @@ static void vwarn_at_loc (CarpFlags flags, const char *file, const char *func, i
         exit(255);
 }
 
-char *swarn_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+char *swarn_at_loc (const char *file,
+                    const char *func,
+                    int         line,
+                    int         errnum,
+                    const char *fmt, ...)
+{
     char *mesg;
     va_list args;
     va_start(args, fmt);
@@ -165,14 +188,24 @@ char *swarn_at_loc (const char *file, const char *func, int line, int errnum, co
     return mesg;
 }
 
-void warn_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+void warn_at_loc (const char *file,
+                  const char *func,
+                  int         line,
+                  int         errnum,
+                  const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
     vwarn_at_loc(0, file, func, line, errnum, fmt, args);
     va_end(args);
 }
 
-char *sdie_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+char *sdie_at_loc (const char *file,
+                   const char *func,
+                   int         line,
+                   int         errnum,
+                   const char *fmt, ...)
+{
     char *mesg;
     va_list args;
     va_start(args, fmt);
@@ -181,7 +214,12 @@ char *sdie_at_loc (const char *file, const char *func, int line, int errnum, con
     return mesg;
 }
 
-void die_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+void die_at_loc (const char *file,
+                 const char *func,
+                 int         line,
+                 int         errnum,
+                 const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
     vwarn_at_loc(DIE, file, func, line, errnum, fmt, args);
@@ -247,7 +285,14 @@ static FuncInfo *get_suspect (List *stack) {
     return occurs;
 }
 
-static char *vscarp_at_loc (CarpFlags flags, const char *file, const char *func, int line, int errnum, const char *fmt, va_list args) {
+static char *vscarp_at_loc (CarpFlags   flags,
+                            const char *file,
+                            const char *func,
+                            int         line,
+                            int         errnum,
+                            const char *fmt,
+                            va_list     args)
+{
     List *stack;
     char *mesg = vcarp_message(fmt, args, errnum, flags);
 
@@ -289,7 +334,14 @@ static char *vscarp_at_loc (CarpFlags flags, const char *file, const char *func,
     return mesg;
 }
 
-static void vcarp_at_loc (CarpFlags flags, const char *file, const char *func, int line, int errnum, const char *fmt, va_list args) {
+static void vcarp_at_loc (CarpFlags   flags,
+                          const char *file,
+                          const char *func,
+                          int         line,
+                          int         errnum,
+                          const char *fmt,
+                          va_list     args)
+{
     char *mesg = vscarp_at_loc(flags, file, func, line, errnum, fmt, args);
     output(mesg);
     free(mesg);
@@ -297,7 +349,12 @@ static void vcarp_at_loc (CarpFlags flags, const char *file, const char *func, i
         exit(255);
 }
 
-char *scarp_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+char *scarp_at_loc (const char *file,
+                    const char *func,
+                    int         line,
+                    int         errnum,
+                    const char *fmt, ...)
+{
     char *mesg;
     va_list args;
     va_start(args, fmt);
@@ -306,14 +363,24 @@ char *scarp_at_loc (const char *file, const char *func, int line, int errnum, co
     return mesg;
 }
 
-void carp_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+void carp_at_loc (const char *file,
+                  const char *func,
+                  int         line,
+                  int         errnum,
+                  const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
     vcarp_at_loc(0, file, func, line, errnum, fmt, args);
     va_end(args);
 }
 
-char *scroak_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+char *scroak_at_loc (const char *file,
+                     const char *func,
+                     int         line,
+                     int         errnum,
+                     const char *fmt, ...)
+{
     char *mesg;
     va_list args;
     va_start(args, fmt);
@@ -322,14 +389,24 @@ char *scroak_at_loc (const char *file, const char *func, int line, int errnum, c
     return mesg;
 }
 
-void croak_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+void croak_at_loc (const char *file,
+                   const char *func,
+                   int         line,
+                   int         errnum,
+                   const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
     vcarp_at_loc(DIE, file, func, line, errnum, fmt, args);
     va_end(args);
 }
 
-char *scluck_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+char *scluck_at_loc (const char *file,
+                     const char *func,
+                     int         line,
+                     int         errnum,
+                     const char *fmt, ...)
+{
     char *mesg;
     va_list args;
     va_start(args, fmt);
@@ -338,14 +415,24 @@ char *scluck_at_loc (const char *file, const char *func, int line, int errnum, c
     return mesg;
 }
 
-void cluck_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+void cluck_at_loc (const char *file,
+                   const char *func,
+                   int         line,
+                   int         errnum,
+                   const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
     vcarp_at_loc(CLUCK, file, func, line, errnum, fmt, args);
     va_end(args);
 }
 
-char *sconfess_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+char *sconfess_at_loc (const char *file,
+                       const char *func,
+                       int         line,
+                       int         errnum,
+                       const char *fmt, ...)
+{
     char *mesg;
     va_list args;
     va_start(args, fmt);
@@ -354,11 +441,15 @@ char *sconfess_at_loc (const char *file, const char *func, int line, int errnum,
     return mesg;
 }
 
-void confess_at_loc (const char *file, const char *func, int line, int errnum, const char *fmt, ...) {
+void confess_at_loc (const char *file,
+                     const char *func,
+                     int         line,
+                     int         errnum,
+                     const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
     vcarp_at_loc(CLUCK | DIE, file, func, line, errnum, fmt, args);
     va_end(args);
 }
-
 
