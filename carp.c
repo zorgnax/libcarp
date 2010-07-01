@@ -1,5 +1,3 @@
-/* Based on Perl's Carp package and GLib's gbacktrace.c  */
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -13,15 +11,16 @@ static void output_builtin (const char *mesg) {
     fputs(mesg, stderr);
 }
 
-static int             always_confess  = 0;
-static int             always_warn     = 0;
+static int             verbose         = 0;
+static int             muzzled         = 0;
 static int             dump_stack      = 0;
 static CarpOutputFunc  output          = output_builtin;
 static int             strip           = 0;
 static List           *trusted_files   = NULL;
 static List           *trusted_libs    = NULL;
 
-static void init ();
+static void  init          ();
+static char *vscarp_at_loc ();
 
 /* A strcmp that handles NULL values */
 static int mystrcmp (const char *a, const char *b) {
@@ -31,13 +30,15 @@ static int mystrcmp (const char *a, const char *b) {
 /*
 carp settings
 
-"always-confess" int
-All macros show the full stack trace.
-Defaults to environment var CARP_ALWAYS_CONFESS
+"verbose" int
+All macros show the full stack trace. This makes warn and carp the same as a
+cluck, die and croak the same as a confess.
+Defaults to environment var CARP_VERBOSE
 
-"always-warn" int
-Stack trace is never performed.
-Defaults to environment var CARP_ALWAYS_WARN
+"muzzled" int
+Stack trace is never performed. This makes carp and cluck the same as warn,
+croak and confess the same as die.
+Defaults to environment var CARP_MUZZLED
 
 "dump-stack" int
 Print as much info as you can about the stack.
@@ -74,11 +75,15 @@ void carp_set (const char *key, ...) {
     init();
     va_start(args, key);
     for (; key; key = va_arg(args, const char *)) {
-        if (!strcmp(key, "always-confess")) {
-            always_confess = va_arg(args, int);
+        if (!strcmp(key, "verbose")) {
+            verbose = va_arg(args, int);
+            if (verbose)
+                muzzled = 0;
         }
-        else if (!strcmp(key, "always-warn")) {
-            always_warn = va_arg(args, int);
+        else if (!strcmp(key, "muzzled")) {
+            muzzled = va_arg(args, int);
+            if (muzzled)
+                verbose = 0;
         }
         else if (!strcmp(key, "dump-stack")) {
             dump_stack = va_arg(args, int);
@@ -134,15 +139,15 @@ static void init () {
 
     carp_set(
         "output",         getenv   ("CARP_OUTPUT"),
-        "always-confess", getintenv("CARP_ALWAYS_CONFESS"),
-        "always-warn",    getintenv("CARP_ALWAYS_WARN"),
+        "verbose",        getintenv("CARP_VERBOSE"),
+        "muzzled",        getintenv("CARP_MUZZLED"),
         "dump-stack",     getintenv("CARP_DUMP_STACK"),
         "strip",          getintenv("CARP_STRIP"),
         NULL
     );
 }
 
-/* Appends a formatted string to a string. The result must be freed. */
+/* Appends a formatted string to a string. The result must be freed.  */
 static char *vappend (char *str, const char *fmt, va_list args) {
     int str_size = str ? strlen(str) : 0;
     int size = vsnprintf(NULL, 0, fmt, args) + str_size + 1;
@@ -171,7 +176,6 @@ static char *vcarp_message (const char *fmt,
                             CarpFlags   flags)
 {
     char *mesg = NULL;
-    init();
     if (fmt && *fmt) {
         mesg = vappend(mesg, fmt, args);
         if (errnum)
@@ -195,6 +199,9 @@ static char *vswarn_at_loc (CarpFlags   flags,
                             va_list     args)
 {
     char *mesg;
+    init();
+    if (verbose)
+        return vscarp_at_loc(flags, file, func, line, errnum, fmt, args);
     mesg = vcarp_message(fmt, args, errnum, flags);
     mesg = append(mesg, " at %s line %d\n", file, line);
     return mesg;
@@ -237,7 +244,9 @@ static List *get_trimmed_stack_trace () {
 
     for (p = stack; p; p = p->next) {
         f = (FuncInfo *) p->data;
-        if (!strcmp(f->func, "vcarp_at_loc")) {
+        if (!strcmp(f->func, "vcarp_at_loc") ||
+            !strcmp(f->func, "vwarn_at_loc"))
+        {
             List *old_stack = stack;
             /* Am I assuming too much?  */
             stack = p->next->next;
@@ -282,30 +291,27 @@ static char *vscarp_at_loc (CarpFlags   flags,
                             va_list     args)
 {
     List *stack;
-    char *mesg = vcarp_message(fmt, args, errnum, flags);
-
+    char *mesg;
+    init();
+    if (muzzled)
+        return vswarn_at_loc(flags, file, func, line, errnum, fmt, args);
+    mesg = vcarp_message(fmt, args, errnum, flags);
     stack = get_trimmed_stack_trace();
     if (!stack)
         return append(mesg, " at %s line %d\n", file, line);
-
-    if (flags & CLUCK) {
+    if (verbose || flags & CLUCK) {
         List *cur, *prev;
-        
         for (prev = NULL, cur = stack; cur; prev = cur, cur = cur->next) {
             FuncInfo *prevf = prev ? prev->data : NULL;
             FuncInfo *curf = cur->data;
-            
             if (prevf)
                 mesg = append(mesg, "    %s() called", prevf->func);
-            
             if (curf->file)
                 mesg = append(mesg, " at %s line %d", curf->file, curf->line);
             else if (!prev)
                 mesg = append(mesg, " at %s line %d", file, line);
-            
             if (curf->lib)
                 mesg = append(mesg, " from %s", curf->lib);
-            
             mesg = append(mesg, "\n");
         }
     }
@@ -317,7 +323,6 @@ static char *vscarp_at_loc (CarpFlags   flags,
             mesg = append(mesg, " at %s line %d\n", suspect->file,
                                                     suspect->line);
     }
-
     list_free(stack, func_info_free);
     return mesg;
 }
