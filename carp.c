@@ -222,13 +222,11 @@ static void vwarn_at_loc (CarpFlags   flags,
         exit(255);
 }
 
-void stack_dump (List *stack) {
+static void dump (List *stack) {
     List *p;
-    
     printf("---\n");
     for (p = stack; p; p = p->next) {
-        FuncInfo *f = (FuncInfo *) p->data;
-        func_info_print(f);
+        func_info_print(p->data);
     }
     printf("...\n");
 }
@@ -241,6 +239,9 @@ static List *get_trimmed_stack_trace () {
     stack = get_stack_trace();
     if (!stack)
         return NULL;
+
+    if (dump_stack)
+        dump(stack);
 
     for (p = stack; p; p = p->next) {
         f = (FuncInfo *) p->data;
