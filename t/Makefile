@@ -1,9 +1,21 @@
 -include ../config.mak
 
+ifdef GNU
+	DSFOOLIB = libdsfoo.a
+	DSBARLIB = libdsbar.a
+	NDSFOOLIB = libndsfoo.a
+	NDSBARLIB = libndsbar.a
+else
+	DSFOOLIB = dsfoo.lib
+	DSBARLIB = dsbar.lib
+	NDSFOOLIB = ndsfoo.lib
+	NDSBARLIB = ndsbar.lib
+endif
+
 CFLAGSND += -I..
 LDFLAGS = ../$(CARPLIB) $(TAPLIB)
 
-X = synopsis$(_X) debugged-test$(_X) not-debugged-test$(_X)
+X = synopsis$(_X) debugged-test$(_X) not-debugged-test$(_X) debugged-staticlib-test$(_X) not-debugged-staticlib-test$(_X)
 
 TAPLIB = tap$(_O)
 O1 = synopsis$(_O)
@@ -41,6 +53,24 @@ debugged-foo$(_O): foo.c foo.h bar.h
 debugged-bar$(_O): bar.c bar.h
 	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED $(CFLAGS) bar.c
 
+# static libs with debugging symbols
+debugged-staticlib-test$(_X): debugged-test$(_O) $(DSFOOLIB) $(DSBARLIB)
+	$(CC) $(CFLAGS) $(CLOUT)$@ debugged-test$(_O) $(DSFOOLIB) $(DSBARLIB) $(LDFLAGS)
+
+$(DSFOOLIB): debugged-foo$(_O)
+ifdef GNU
+	$(AR) rcs $(DSFOOLIB) debugged-foo$(_O)
+else
+	lib /nologo /out:$(DSFOOLIB) debugged-foo$(_O)
+endif
+
+$(DSBARLIB): debugged-bar$(_O)
+ifdef GNU
+	$(AR) rcs $(DSBARLIB) debugged-bar$(_O)
+else
+	lib /nologo /out:$(DSBARLIB) debugged-bar$(_O)
+endif
+
 # regular object linking without debugging symbols
 not-debugged-test$(_X): $(O3)
 	$(CC) $(CFLAGSND) $(CLOUT)$@ $(O3) $(LDFLAGS)
@@ -54,7 +84,25 @@ not-debugged-foo$(_O): foo.c foo.h bar.h
 not-debugged-bar$(_O): bar.c bar.h
 	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED $(CFLAGSND) bar.c
 
+# static libs without debugging symbols
+not-debugged-staticlib-test$(_X): not-debugged-test$(_O) $(NDSFOOLIB) $(NDSBARLIB)
+	$(CC) $(CFLAGSND) $(CLOUT)$@ not-debugged-test$(_O) $(NDSFOOLIB) $(NDSBARLIB) $(LDFLAGS)
+
+$(NDSFOOLIB): not-debugged-foo$(_O)
+ifdef GNU
+	$(AR) rcs $(NDSFOOLIB) not-debugged-foo$(_O)
+else
+	lib /nologo /out:$(NDSFOOLIB) not-debugged-foo$(_O)
+endif
+
+$(NDSBARLIB): not-debugged-bar$(_O)
+ifdef GNU
+	$(AR) rcs $(NDSBARLIB) not-debugged-bar$(_O)
+else
+	lib /nologo /out:$(NDSBARLIB) not-debugged-bar$(_O)
+endif
+
 .PHONY: clean
 clean:
-	$(RM) -rv *.o *.obj *.lib *.pdb *.ilk $(X) _C
+	$(RM) -rv *.o *.obj *.lib *.pdb *.ilk $(X) _C *.a
 
