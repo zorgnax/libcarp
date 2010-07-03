@@ -1,46 +1,58 @@
 -include ../config.mak
 
 CFLAGSND += -I..
+LDFLAGS = ../$(CARPLIB) $(TAPLIB)
 
-X = synopsis$(_X) debugged-main$(_X) not-debugged-main$(_X)
+X = synopsis$(_X) debugged-test$(_X) not-debugged-test$(_X)
 
+TAPLIB = tap$(_O)
 O1 = synopsis$(_O)
-O2 = debugged-main$(_O) debugged-lib1$(_O) debugged-lib2$(_O)
-O3 = not-debugged-main$(_O) not-debugged-lib1$(_O) not-debugged-lib2$(_O)
+O2 = debugged-test$(_O) debugged-foo$(_O) debugged-bar$(_O)
+O3 = not-debugged-test$(_O) not-debugged-foo$(_O) not-debugged-bar$(_O)
 O = $(O1) $(O2) $(O3)
+
+$(X): ../$(CARPLIB) $(TAPLIB)
+$(O): ../$(CARPLIB) ../carp.h tap.h
 
 .PHONY: all
 all: $(X) ../$(CARPLIB)
 
-synopsis$(_X): $(O1) ../$(CARPLIB)
-	$(CC) $(CFLAGS) $(CLOUT)$@ $(O1) ../$(CARPLIB)
+# included tap lib
+$(TAPLIB): tap.c tap.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) tap.c
+
+# short synopsis
+synopsis$(_X): $(O1)
+	$(CC) $(CFLAGS) $(CLOUT)$@ $(O1) $(LDFLAGS)
 
 synopsis$(_O): synopsis.c
 	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) synopsis.c
 
-debugged-main$(_X): $(O2) ../$(CARPLIB)
-	$(CC) $(CFLAGS) $(CLOUT)$@ $(O2) ../$(CARPLIB)
+# regular object linking with debugging symbols
+debugged-test$(_X): $(O2)
+	$(CC) $(CFLAGS) $(CLOUT)$@ $(O2) $(LDFLAGS)
 
-debugged-main$(_O): main.c
-	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) main.c
+debugged-test$(_O): test.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED $(CFLAGS) test.c
 
-debugged-lib1$(_O): lib1.c
-	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) lib1.c
+debugged-foo$(_O): foo.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED $(CFLAGS) foo.c
 
-debugged-lib2$(_O): lib2.c
-	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGS) lib2.c
+debugged-bar$(_O): bar.c bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED $(CFLAGS) bar.c
 
-not-debugged-main$(_X): $(O3) ../$(CARPLIB)
-	$(CC) $(CFLAGSND) $(CLOUT)$@ $(O3) ../$(CARPLIB)
+# regular object linking without debugging symbols
+not-debugged-test$(_X): $(O3)
+	$(CC) $(CFLAGSND) $(CLOUT)$@ $(O3) $(LDFLAGS)
 
-not-debugged-main$(_O): main.c
-	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGSND) main.c
+not-debugged-test$(_O): test.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED $(CFLAGSND) test.c
 
-not-debugged-lib1$(_O): lib1.c
-	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGSND) lib1.c
+not-debugged-foo$(_O): foo.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED $(CFLAGSND) foo.c
 
-not-debugged-lib2$(_O): lib2.c
-	$(CC) $(CCFLAGS) $(CCOUT)$@ $(CFLAGSND) lib2.c
+not-debugged-bar$(_O): bar.c bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED $(CFLAGSND) bar.c
 
 .PHONY: clean
 clean:
