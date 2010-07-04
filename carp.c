@@ -244,16 +244,22 @@ static List *get_trimmed_stack_trace () {
         dump(stack);
 
     for (p = stack; p; p = p->next) {
-        f = (FuncInfo *) p->data;
-        if (!strcmp(f->func, "vcarp_at_loc")  ||
-            !strcmp(f->func, "vwarn_at_loc")  ||
-            !strcmp(f->func, "vscarp_at_loc") ||
+        f = p->data;
+        if (!strcmp(f->func, "vscarp_at_loc") ||
             !strcmp(f->func, "vswarn_at_loc"))
         {
             List *old_stack = stack;
-            /* Am I assuming too much?  */
-            stack = p->next->next;
-            p->next->next = NULL;
+            FuncInfo *nextf = p->next->data;
+            if (!strcmp(nextf->func, "vcarp_at_loc") ||
+                !strcmp(nextf->func, "vwarn_at_loc"))
+            {
+                stack = p->next->next->next;
+                p->next->next->next = NULL;
+            }
+            else {
+                stack = p->next->next;
+                p->next->next = NULL;
+            }
             list_free(old_stack, func_info_free);
             break;
         }

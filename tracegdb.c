@@ -8,6 +8,33 @@
 #include "list.h"
 #include "funcinfo.h"
 
+typedef struct {
+    void *from;
+    void *to;
+    int   readsyms;
+    int   dbinfo;
+    char *name;
+} SharedLib;
+
+static void shared_lib_free (SharedLib *lib) {
+    if (!lib)
+        return;
+    free(lib->name);
+    free(lib);
+}
+
+/* Looks through the list of libs and finds if the given address is between the
+from and to addresses of the contained libraries.  */
+static char *get_lib_name (List *libs, void *addr) {
+    List *item;
+    for (item = libs; item; item = item->next) {
+        SharedLib *lib = item->data;
+        if (lib->from <= addr && addr <= lib->to)
+            return strdup(lib->name);
+    }
+    return NULL;
+}
+
 /* Parses gdb's stdout fd after requesting a backtrace. The result is stored
 in a linked list of FuncInfo structures.  */
 static List *parse_stack_trace (int gdb) {
@@ -17,6 +44,8 @@ static List *parse_stack_trace (int gdb) {
     char buf[4096];
     List *stack = NULL;
     FuncInfo *f;
+    List *libs = NULL;
+    SharedLib *lib;
     
     enum {
         NONE,
@@ -26,14 +55,18 @@ static List *parse_stack_trace (int gdb) {
         FILE,
         LINE,
         LIB,
-        QUOTE
+        QUOTE,
+        FROMADDR,
+        TOADDR,
+        SYMS,
+        SONAME
     } state = NONE, prev_state = NONE;
     
     while (read(gdb, &c, 1)) {
         switch (state) {
         case NONE:
             if (c == '#') {
-                f = (FuncInfo *) calloc(sizeof (FuncInfo), 1);
+                f = calloc(sizeof (FuncInfo), 1);
                 state = ADDR;
                 while (read(gdb, &c, 1))
                     if (!isdigit(c))
@@ -45,15 +78,78 @@ static List *parse_stack_trace (int gdb) {
                         break;
                     }
             }
+            else if (!stack && c == '0') {
+                lib = calloc(sizeof (SharedLib), 1);
+                state = FROMADDR;
+                buf[0] = c;
+                i = 1;
+            }
             else if (stack && c == '(') {
                 read(gdb, buf, 3);
-                if (strncmp(buf, "gdb", 3) == 0)
+                if (!strncmp(buf, "gdb", 3))
                     goto done;
             }
             else if (!stack && c == 'N') {
                 read(gdb, buf, 7);
-                if (strncmp(buf, "o stack", 7) == 0)
+                if (!strncmp(buf, "o stack", 7))
                     goto done;
+            }
+            break;
+        case FROMADDR:
+            if (!isspace(c)) {
+                buf[i++] = c;
+            }
+            else {
+                buf[i] = 0;
+                i = 0;
+                sscanf(buf, "%p", &lib->from);
+                read(gdb, buf, 1);
+                state = TOADDR;
+            }
+            break;
+        case TOADDR:
+            if (!isspace(c)) {
+                buf[i++] = c;
+            }
+            else {
+                buf[i] = 0;
+                i = 0;
+                sscanf(buf, "%p", &lib->to);
+                read(gdb, buf, 1);
+                state = SYMS;
+            }
+            break;
+        case SYMS:
+            if (!isspace(c)) {
+                buf[i++] = c;
+            }
+            else {
+                buf[i] = 0;
+                i = 0;
+                if (!strcmp(buf, "Yes"))
+                    lib->readsyms = 1;
+                read(gdb, buf, 3);
+                if (strncmp(buf, "(*)", 3))
+                    lib->dbinfo = 1;
+                while (read(gdb, &c, 1))
+                    if (!isspace(c)) {
+                        buf[0] = c;
+                        i = 1;
+                        break;
+                    }
+                state = SONAME;
+            }
+            break;
+        case SONAME:
+            if (c != '\n') {
+                buf[i++] = c;
+            }
+            else {
+                buf[i] = 0;
+                i = 0;
+                lib->name = strdup(buf);
+                libs = list_push(libs, lib);
+                state = NONE;
             }
             break;
         case ADDR:
@@ -64,6 +160,7 @@ static List *parse_stack_trace (int gdb) {
                 buf[i] = 0;
                 i = 0;
                 sscanf(buf, "%p", &f->addr);
+                f->lib = get_lib_name(libs, f->addr);
                 read(gdb, buf, 3);
                 state = FUNC;
             }
@@ -92,15 +189,15 @@ static List *parse_stack_trace (int gdb) {
                 f->args = strdup(buf);
                 read(gdb, &c, 1);
                 if (c == '\n') {
-                    stack = list_push(stack, (void *) f);
+                    stack = list_push(stack, f);
                     state = NONE;
                     break;
                 }
                 read(gdb, buf, 3);
-                if (strncmp(buf, "at ", 3) == 0) {
+                if (!strncmp(buf, "at ", 3)) {
                     state = FILE;
                 }
-                else if (strncmp(buf, "fro", 3) == 0) {
+                else if (!strncmp(buf, "fro", 3)) {
                     state = LIB;
                     read(gdb, buf, 2);
                 }
@@ -130,8 +227,9 @@ static List *parse_stack_trace (int gdb) {
             else {
                 buf[i] = 0;
                 i = 0;
-                f->lib = strdup(buf);
-                stack = list_push(stack, (void *) f);
+                if (!f->lib)
+                    f->lib = strdup(buf);
+                stack = list_push(stack, f);
                 state = NONE;
             }
             break;
@@ -154,7 +252,7 @@ static List *parse_stack_trace (int gdb) {
                 buf[i] = 0;
                 i = 0;
                 f->line = atoi(buf);
-                stack = list_push(stack, (void *) f);
+                stack = list_push(stack, f);
                 state = NONE;
             }
             break;
@@ -162,6 +260,7 @@ static List *parse_stack_trace (int gdb) {
     }
     
     done:
+    list_free(libs, shared_lib_free);
     return stack;
 }
 
@@ -176,6 +275,7 @@ List *get_stack_trace () {
         return NULL;
     }
     
+    write(in_fd[1], "info sharedlibrary\n", 19);
     write(in_fd[1], "backtrace\n", 10);
     write(in_fd[1], "quit\n", 5);
     
