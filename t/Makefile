@@ -1,21 +1,32 @@
 -include ../config.mak
 
 ifdef GNU
+	LDFLAGS += -L. -Wl,--rpath=.
 	DSFOOLIB = libdsfoo.a
 	DSBARLIB = libdsbar.a
 	NDSFOOLIB = libndsfoo.a
 	NDSBARLIB = libndsbar.a
+	DDFOOLIB = libddfoo.so
+	DDBARLIB = libddbar.so
+	NDDFOOLIB = libnddfoo.so
+	NDDBARLIB = libnddbar.so
 else
 	DSFOOLIB = dsfoo.lib
 	DSBARLIB = dsbar.lib
 	NDSFOOLIB = ndsfoo.lib
 	NDSBARLIB = ndsbar.lib
+	DDFOOLIB = ddfoo.dll
+	DDBARLIB = ddbar.dll
+	NDDFOOLIB = nddfoo.dll
+	NDDBARLIB = nddbar.dll
 endif
 
 CFLAGSND += -I..
-LDFLAGS = ../$(CARPLIB) $(TAPLIB)
+LDFLAGS += ../$(CARPLIB) $(TAPLIB)
 
-X = synopsis$(_X) debugged-test$(_X) not-debugged-test$(_X) debugged-staticlib-test$(_X) not-debugged-staticlib-test$(_X)
+X = synopsis$(_X) debugged-test$(_X) not-debugged-test$(_X) \
+	debugged-staticlib-test$(_X) not-debugged-staticlib-test$(_X) \
+	debugged-dynamiclib-test$(_X) not-debugged-dynamiclib-test$(_X)
 
 TAPLIB = tap$(_O)
 O1 = synopsis$(_O)
@@ -71,6 +82,24 @@ else
 	lib /nologo /out:$(DSBARLIB) debugged-bar$(_O)
 endif
 
+# dynamic libs with debugging symbols
+debugged-dynamiclib-test$(_X): debugged-test$(_O) $(DDFOOLIB) $(DDBARLIB)
+	$(CC) $(CFLAGS) $(CLOUT)$@ debugged-test$(_O) $(DDFOOLIB) $(DDBARLIB) $(LDFLAGS)
+
+$(DDFOOLIB): debugged-foo$(_O)
+ifdef GNU
+	$(CC) -shared -o $(DDFOOLIB) debugged-foo$(_O)
+else
+	lib /nologo /out:$(DDFOOLIB) debugged-foo$(_O)
+endif
+
+$(DDBARLIB): debugged-bar$(_O)
+ifdef GNU
+	$(CC) -shared -o $(DDBARLIB) debugged-bar$(_O)
+else
+	lib /nologo /out:$(DDBARLIB) debugged-bar$(_O)
+endif
+
 # regular object linking without debugging symbols
 not-debugged-test$(_X): $(O3)
 	$(CC) $(CFLAGSND) $(CLOUT)$@ $(O3) $(LDFLAGS)
@@ -102,7 +131,25 @@ else
 	lib /nologo /out:$(NDSBARLIB) not-debugged-bar$(_O)
 endif
 
+# dynamic libs without debugging symbols
+not-debugged-dynamiclib-test$(_X): not-debugged-test$(_O) $(NDDFOOLIB) $(NDDBARLIB)
+	$(CC) $(CFLAGSND) $(CLOUT)$@ not-debugged-test$(_O) $(NDDFOOLIB) $(NDDBARLIB) $(LDFLAGS)
+
+$(NDDFOOLIB): not-debugged-foo$(_O)
+ifdef GNU
+	$(CC) -shared -o $(NDDFOOLIB) not-debugged-foo$(_O)
+else
+	lib /nologo /out:$(NDDFOOLIB) not-debugged-foo$(_O)
+endif
+
+$(NDDBARLIB): not-debugged-bar$(_O)
+ifdef GNU
+	$(CC) -shared -o $(NDDBARLIB) not-debugged-bar$(_O)
+else
+	lib /nologo /out:$(NDDBARLIB) not-debugged-bar$(_O)
+endif
+
 .PHONY: clean
 clean:
-	$(RM) -rv *.o *.obj *.lib *.pdb *.ilk $(X) _C *.a
+	$(RM) -rv *.o *.obj *.lib *.pdb *.ilk $(X) _C *.a *.so *.dll
 
