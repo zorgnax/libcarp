@@ -31,16 +31,16 @@ X = synopsis$(_X) debugged-test$(_X) not-debugged-test$(_X) \
 TAPLIB = tap$(_O)
 O1 = synopsis$(_O)
 O2 = debugged-test$(_O) debugged-foo$(_O) debugged-bar$(_O)
-O3 = debugged-pic-foo$(_O) debugged-pic-bar$(_O)
+O3 = debugged-dynamic-test$(_O) debugged-dynamic-foo$(_O) debugged-dynamic-bar$(_O)
 O4 = not-debugged-test$(_O) not-debugged-foo$(_O) not-debugged-bar$(_O)
-O5 = not-debugged-pic-foo$(_O) not-debugged-pic-bar$(_O)
+O5 = debugged-dynamic-test$(_O) not-debugged-dynamic-foo$(_O) not-debugged-dynamic-bar$(_O)
 O = $(O1) $(O2) $(O3) $(O4) $(O5)
-
-$(X): ../$(CARPLIB) $(TAPLIB)
-$(O): ../$(CARPLIB) ../carp.h tap.h
 
 .PHONY: all
 all: $(X) ../$(CARPLIB)
+
+$(X): ../$(CARPLIB) $(TAPLIB)
+$(O): ../$(CARPLIB) ../carp.h tap.h
 
 # included tap lib
 $(TAPLIB): tap.c tap.h
@@ -85,28 +85,31 @@ else
 endif
 
 # dynamic libs with debugging symbols
-debugged-dynamiclib-test$(_X): debugged-test$(_O) $(DDFOOLIB) $(DDBARLIB)
+debugged-dynamiclib-test$(_X): debugged-dynamic-test$(_O) $(DDFOOLIB) $(DDBARLIB)
 	$(CC) $(CFLAGS) $(CLOUT)$@ debugged-test$(_O) $(DDFOOLIB) $(DDBARLIB) $(LDFLAGS)
 
-$(DDFOOLIB): debugged-pic-foo$(_O)
+$(DDFOOLIB): debugged-dynamic-foo$(_O)
 ifdef GNU
-	$(CC) -shared -o $(DDFOOLIB) debugged-foo$(_O)
+	$(CC) -shared -o $(DDFOOLIB) debugged-dynamic-foo$(_O)
 else
-	lib /nologo /out:$(DDFOOLIB) debugged-foo$(_O)
+	lib /nologo /out:$(DDFOOLIB) debugged-dynamic-foo$(_O)
 endif
 
-$(DDBARLIB): debugged-pic-bar$(_O)
+$(DDBARLIB): debugged-dynamic-bar$(_O)
 ifdef GNU
-	$(CC) -shared -o $(DDBARLIB) debugged-bar$(_O)
+	$(CC) -shared -o $(DDBARLIB) debugged-dynamic-bar$(_O)
 else
-	lib /nologo /out:$(DDBARLIB) debugged-bar$(_O)
+	lib /nologo /out:$(DDBARLIB) debugged-dynamic-bar$(_O)
 endif
 
-debugged-pic-foo$(_O): foo.c foo.h bar.h
-	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED $(CFLAGS) -fPIC foo.c
+debugged-dynamic-test$(_O): test.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED -DDYNAMIC $(CFLAGS) test.c
 
-debugged-pic-bar$(_O): bar.c bar.h
-	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED $(CFLAGS) -fPIC bar.c
+debugged-dynamic-foo$(_O): foo.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED -DDYNAMIC $(CFLAGS) -fPIC foo.c
+
+debugged-dynamic-bar$(_O): bar.c bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED -DDYNAMIC $(CFLAGS) -fPIC bar.c
 
 # regular object linking without debugging symbols
 not-debugged-test$(_X): $(O4)
@@ -140,28 +143,31 @@ else
 endif
 
 # dynamic libs without debugging symbols
-not-debugged-dynamiclib-test$(_X): not-debugged-test$(_O) $(NDDFOOLIB) $(NDDBARLIB)
+not-debugged-dynamiclib-test$(_X): not-debugged-dynamic-test$(_O) $(NDDFOOLIB) $(NDDBARLIB)
 	$(CC) $(CFLAGSND) $(CLOUT)$@ not-debugged-test$(_O) $(NDDFOOLIB) $(NDDBARLIB) $(LDFLAGS)
 
-$(NDDFOOLIB): not-debugged-pic-foo$(_O)
+$(NDDFOOLIB): not-debugged-dynamic-foo$(_O)
 ifdef GNU
-	$(CC) -shared -o $(NDDFOOLIB) not-debugged-foo$(_O)
+	$(CC) -shared -o $(NDDFOOLIB) not-debugged-dynamic-foo$(_O)
 else
-	lib /nologo /out:$(NDDFOOLIB) not-debugged-foo$(_O)
+	lib /nologo /out:$(NDDFOOLIB) not-debugged-dynamic-foo$(_O)
 endif
 
-$(NDDBARLIB): not-debugged-pic-bar$(_O)
+$(NDDBARLIB): not-debugged-dynamic-bar$(_O)
 ifdef GNU
-	$(CC) -shared -o $(NDDBARLIB) not-debugged-bar$(_O)
+	$(CC) -shared -o $(NDDBARLIB) not-debugged-dynamic-bar$(_O)
 else
-	lib /nologo /out:$(NDDBARLIB) not-debugged-bar$(_O)
+	lib /nologo /out:$(NDDBARLIB) not-debugged-dynamic-bar$(_O)
 endif
 
-not-debugged-pic-foo$(_O): foo.c foo.h bar.h
-	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED $(CFLAGSND) -fPIC foo.c
+not-debugged-dynamic-test$(_O): test.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED -DDYNAMIC $(CFLAGSND) test.c
 
-not-debugged-pic-bar$(_O): bar.c bar.h
-	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED $(CFLAGSND) -fPIC bar.c
+not-debugged-dynamic-foo$(_O): foo.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED -DDYNAMIC $(CFLAGSND) -fPIC foo.c
+
+not-debugged-dynamic-bar$(_O): bar.c bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED -DDYNAMIC $(CFLAGSND) -fPIC bar.c
 
 .PHONY: clean
 clean:
