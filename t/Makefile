@@ -1,7 +1,7 @@
 -include ../config.mak
 
 ifdef GNU
-	LDFLAGS += -L. -Wl,--rpath=.
+	LDFLAGS += -L. -Wl,--rpath=.:t
 	DSFOOLIB = libdsfoo.a
 	DSBARLIB = libdsbar.a
 	NDSFOOLIB = libndsfoo.a
@@ -31,8 +31,10 @@ X = synopsis$(_X) debugged-test$(_X) not-debugged-test$(_X) \
 TAPLIB = tap$(_O)
 O1 = synopsis$(_O)
 O2 = debugged-test$(_O) debugged-foo$(_O) debugged-bar$(_O)
-O3 = not-debugged-test$(_O) not-debugged-foo$(_O) not-debugged-bar$(_O)
-O = $(O1) $(O2) $(O3)
+O3 = debugged-pic-foo$(_O) debugged-pic-bar$(_O)
+O4 = not-debugged-test$(_O) not-debugged-foo$(_O) not-debugged-bar$(_O)
+O5 = not-debugged-pic-foo$(_O) not-debugged-pic-bar$(_O)
+O = $(O1) $(O2) $(O3) $(O4) $(O5)
 
 $(X): ../$(CARPLIB) $(TAPLIB)
 $(O): ../$(CARPLIB) ../carp.h tap.h
@@ -86,23 +88,29 @@ endif
 debugged-dynamiclib-test$(_X): debugged-test$(_O) $(DDFOOLIB) $(DDBARLIB)
 	$(CC) $(CFLAGS) $(CLOUT)$@ debugged-test$(_O) $(DDFOOLIB) $(DDBARLIB) $(LDFLAGS)
 
-$(DDFOOLIB): debugged-foo$(_O)
+$(DDFOOLIB): debugged-pic-foo$(_O)
 ifdef GNU
 	$(CC) -shared -o $(DDFOOLIB) debugged-foo$(_O)
 else
 	lib /nologo /out:$(DDFOOLIB) debugged-foo$(_O)
 endif
 
-$(DDBARLIB): debugged-bar$(_O)
+$(DDBARLIB): debugged-pic-bar$(_O)
 ifdef GNU
 	$(CC) -shared -o $(DDBARLIB) debugged-bar$(_O)
 else
 	lib /nologo /out:$(DDBARLIB) debugged-bar$(_O)
 endif
 
+debugged-pic-foo$(_O): foo.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED $(CFLAGS) -fPIC foo.c
+
+debugged-pic-bar$(_O): bar.c bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DDEBUGGED $(CFLAGS) -fPIC bar.c
+
 # regular object linking without debugging symbols
-not-debugged-test$(_X): $(O3)
-	$(CC) $(CFLAGSND) $(CLOUT)$@ $(O3) $(LDFLAGS)
+not-debugged-test$(_X): $(O4)
+	$(CC) $(CFLAGSND) $(CLOUT)$@ $(O4) $(LDFLAGS)
 
 not-debugged-test$(_O): test.c foo.h bar.h
 	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED $(CFLAGSND) test.c
@@ -135,19 +143,25 @@ endif
 not-debugged-dynamiclib-test$(_X): not-debugged-test$(_O) $(NDDFOOLIB) $(NDDBARLIB)
 	$(CC) $(CFLAGSND) $(CLOUT)$@ not-debugged-test$(_O) $(NDDFOOLIB) $(NDDBARLIB) $(LDFLAGS)
 
-$(NDDFOOLIB): not-debugged-foo$(_O)
+$(NDDFOOLIB): not-debugged-pic-foo$(_O)
 ifdef GNU
 	$(CC) -shared -o $(NDDFOOLIB) not-debugged-foo$(_O)
 else
 	lib /nologo /out:$(NDDFOOLIB) not-debugged-foo$(_O)
 endif
 
-$(NDDBARLIB): not-debugged-bar$(_O)
+$(NDDBARLIB): not-debugged-pic-bar$(_O)
 ifdef GNU
 	$(CC) -shared -o $(NDDBARLIB) not-debugged-bar$(_O)
 else
 	lib /nologo /out:$(NDDBARLIB) not-debugged-bar$(_O)
 endif
+
+not-debugged-pic-foo$(_O): foo.c foo.h bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED $(CFLAGSND) -fPIC foo.c
+
+not-debugged-pic-bar$(_O): bar.c bar.h
+	$(CC) $(CCFLAGS) $(CCOUT)$@ -DNOTDEBUGGED $(CFLAGSND) -fPIC bar.c
 
 .PHONY: clean
 clean:

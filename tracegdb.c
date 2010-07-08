@@ -289,7 +289,7 @@ List *get_stack_trace () {
         snprintf(pidstr, sizeof pidstr, "%d", getppid());
         execlp("gdb", "gdb", "--nx", "--pid", pidstr, NULL);
         perror("execlp()");
-        _exit(0);
+        exit(0);
     }
     else if (pid == -1) {
         perror("fork()");
