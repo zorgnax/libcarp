@@ -1,4 +1,4 @@
--include ../config.mak
+-include ../config.mk
 
 LDFLAGS = $(if GNU, $(subst ,, -L. -Wl,--rpath=.:t))
 LDFLAGS += ../$(CARPLIB)
