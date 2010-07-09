@@ -1,29 +1,18 @@
 -include ../config.mak
 
-ifdef GNU
-	LDFLAGS += -L. -Wl,--rpath=.:t
-	DSFOOLIB = libdsfoo.a
-	DSBARLIB = libdsbar.a
-	NDSFOOLIB = libndsfoo.a
-	NDSBARLIB = libndsbar.a
-	DDFOOLIB = libddfoo.so
-	DDBARLIB = libddbar.so
-	NDDFOOLIB = libnddfoo.so
-	NDDBARLIB = libnddbar.so
-else
-	DSFOOLIB = dsfoo.lib
-	DSBARLIB = dsbar.lib
-	NDSFOOLIB = ndsfoo.lib
-	NDSBARLIB = ndsbar.lib
-	DDFOOLIB = ddfoo.dll
-	DDBARLIB = ddbar.dll
-	NDDFOOLIB = nddfoo.dll
-	NDDBARLIB = nddbar.dll
-endif
-STATICLIBS = $(DSFOOLIB) $(DSBARLIB) $(NDSFOOLIB) $(NDSBARLIB)
-DYNAMICLIBS = $(DDFOOLIB) $(DDBARLIB) $(NDDFOOLIB) $(NDDBARLIB)
+LDFLAGS = $(if GNU, $(subst ,, -L. -Wl,--rpath=.:t))
 LDFLAGS += ../$(CARPLIB)
 ALLCFLAGS += -I..
+
+DSFOOLIB  = $(if GNU, libdsfoo.a,   dsfoo.lib)
+DSBARLIB  = $(if GNU, libdsbar.a,   dsbar.lib)
+NDSFOOLIB = $(if GNU, libndsfoo.a,  dsfoo.lib)
+NDSBARLIB = $(if GNU, libndsbar.a,  ndsbar.lib)
+DDFOOLIB  = $(if GNU, libddfoo.so,  ddfoo.dll)
+DDBARLIB  = $(if GNU, libddbar.so,  ddbar.dll)
+NDDFOOLIB = $(if GNU, libnddfoo.so, nddfoo.dll)
+NDDBARLIB = $(if GNU, libnddbar.so, nddbar.dll)
+
 TAPLIB = tap$(_O)
 O1 = synopsis$(_O)
 X1 = synopsis$(_X)
@@ -52,11 +41,6 @@ $(O): ../carp.h tap.h
 $(TEST): test.c foo.h bar.h
 $(FOO): foo.c foo.h bar.h
 $(BAR): bar.c bar.h
-
-$(X):;$(LINK.o)
-$(STATICLIBS):;$(STATICLIB.o)
-$(DYNAMICLIBS):;$(DYNAMICLIB.o)
-$(TAPLIB) $(O):;$(COMPILE.c)
 
 # included tap lib
 $(TAPLIB): CFLAGS = $(DEBUG)

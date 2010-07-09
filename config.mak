@@ -9,6 +9,8 @@ ifdef GNU
 	PIC = -fPIC
 	_O = .o
 	_X =
+	_A = .a
+	_SO = .so
 	CARPLIB = libcarp.a
 	STATICLIB.o = $(AR) rcs $@ $(filter %$(_O), $^)
 	DYNAMICLIB.o = $(CC) -shared -o $@ $(filter %$(_O), $^)
@@ -23,9 +25,17 @@ else
 	PIC = 
 	_O = .obj
 	_X = .exe
+	_A = .lib
+	_SO = .dll
 	CARPLIB = carp.lib
 	STATICLIB.o = lib /nologo /out:$@ $(filter %$(_O), $^)
 	DYNAMICLIB.o = lib /nologo /out:$@ $(filter %$(_O), $^)
 endif
 COMPILE.c = $(CC) $(CCFLAGS) $(CPPFLAGS) $(ALLCFLAGS) $(CCOUT)$@ $(filter %.c, $^)
 LINK.o = $(CC) $(ALLCFLAGS) $(CLOUT)$@ $(filter %$(_O) %.a %.so %.lib %.dll, $^) $(LDFLAGS)
+
+%$(_X):; $(LINK.o)
+%$(_A):; $(STATICLIB.o)
+%$(_SO):; $(DYNAMICLIB.o)
+%$(_O):; $(COMPILE.c)
+
