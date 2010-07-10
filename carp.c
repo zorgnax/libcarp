@@ -91,7 +91,7 @@ vscarp_at_loc (CarpFlags flags, const char *file, const char *func, int line,
                 mesg = append(mesg, " at %s line %d", curf->file, curf->line);
             else if (!prev)
                 mesg = append(mesg, " at %s line %d", file, line);
-            if (curf->lib)
+            else if (curf->lib)
                 mesg = append(mesg, " from %s", curf->lib);
             mesg = append(mesg, "\n");
         }
