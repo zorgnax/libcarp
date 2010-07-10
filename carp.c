@@ -14,7 +14,7 @@ typedef enum {
 
 /* TODO newline should disable the file line backtrace madness  */
 static char *
-vcarp_message (const char *fmt, va_list args, int errnum, CarpFlags flags) {
+vcarp_message (CarpFlags flags, int errnum, const char *fmt, va_list args) {
     char *mesg = NULL;
     if (fmt && *fmt) {
         mesg = vappend(mesg, fmt, args);
@@ -38,7 +38,7 @@ vswarn_at_loc (CarpFlags flags, const char *file, const char *func, int line,
     init();
     if (verbose)
         return vscarp_at_loc(flags, file, func, line, errnum, fmt, args);
-    mesg = vcarp_message(fmt, args, errnum, flags);
+    mesg = vcarp_message(flags, errnum, fmt, args);
     mesg = append(mesg, " at %s line %d\n", file, line);
     return mesg;
 }
@@ -76,7 +76,7 @@ vscarp_at_loc (CarpFlags flags, const char *file, const char *func, int line,
     init();
     if (muzzled)
         return vswarn_at_loc(flags, file, func, line, errnum, fmt, args);
-    mesg = vcarp_message(fmt, args, errnum, flags);
+    mesg = vcarp_message(flags, errnum, fmt, args);
     stack = get_trimmed_stack_trace(dump_stack);
     if (!stack)
         return append(mesg, " at %s line %d\n", file, line);
