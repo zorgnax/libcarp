@@ -1,11 +1,9 @@
+#include "carp.h"
+#include "carppriv.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "carp.h"
-#include "list.h"
-#include "funcinfo.h"
-#include "trace.h"
 
 static void output_builtin (const char *mesg) {
     fputs(mesg, stderr);

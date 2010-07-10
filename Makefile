@@ -1,16 +1,16 @@
 include config.mk
 
-CFLAGS = -g
+CFLAGS = $(DEBUG)
 
 .PHONY: all
 all: $(CARPLIB)
 	$(MAKE) -C t/ all
 
 $(CARPLIB): carp$(_O) trace$(_O) funcinfo$(_O) list$(_O)
-carp$(_O): carp.c carp.h list.h funcinfo.h trace.h
-trace$(_O): $(if GNU, tracegdb.c, tracewin.c) trace.h list.h funcinfo.h
-funcinfo$(_O): funcinfo.c funcinfo.h
-list$(_O): list.c list.h
+carp$(_O): carp.c carp.h carppriv.h
+trace$(_O): $(if GNU, tracegdb.c, tracewin.c) carppriv.h
+funcinfo$(_O): funcinfo.c carppriv.h
+list$(_O): list.c carppriv.h
 
 .PHONY: clean
 clean:

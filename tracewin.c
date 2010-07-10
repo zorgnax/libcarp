@@ -1,11 +1,9 @@
+#include "carppriv.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
 #include <dbghelp.h>
-#include "trace.h"
-#include "list.h"
-#include "funcinfo.h"
 
 List *get_stack_trace () {
     CONTEXT context = {0};
@@ -31,6 +29,7 @@ List *get_stack_trace () {
         exit(255);
     }
     
+    /* walk the stack to get the symbols  */
     while (StackWalk64(
             IMAGE_FILE_MACHINE_I386, /* machine type           */
             process,                 /* process                */
@@ -91,3 +90,4 @@ List *get_stack_trace () {
     SymCleanup(process);
     return stack;
 }
+

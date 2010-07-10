@@ -1,12 +1,10 @@
+#include "carppriv.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include "trace.h"
-#include "list.h"
-#include "funcinfo.h"
 
 typedef struct {
     void *from;
@@ -269,20 +267,20 @@ List *get_stack_trace () {
     int in_fd[2], out_fd[2], status;
     pid_t pid;
     List *stack;
-    
     if (pipe(in_fd) == -1 || pipe(out_fd) == -1) {
         perror("pipe()");
         return NULL;
     }
-    
     write(in_fd[1], "info sharedlibrary\n", 19);
     write(in_fd[1], "backtrace\n", 10);
     write(in_fd[1], "quit\n", 5);
-    
     pid = fork();
-    if (pid == 0) {
+    if (pid == -1) {
+        perror("fork()");
+        return NULL;
+    }
+    else if (pid == 0) {
         char pidstr[16];
-        
         dup2(in_fd[0], 0);
         dup2(out_fd[1], 1);
         dup2(out_fd[1], 2);
@@ -291,18 +289,12 @@ List *get_stack_trace () {
         perror("execlp()");
         exit(0);
     }
-    else if (pid == -1) {
-        perror("fork()");
-        return NULL;
-    }
-    
     stack = parse_stack_trace(out_fd[0]);
-    
     close(in_fd[0]);
     close(in_fd[1]);
     close(out_fd[0]);
-    close(out_fd[1]);    
+    close(out_fd[1]);
     waitpid(pid, &status, 0);
-
     return stack;
 }
+

@@ -1,6 +1,6 @@
+#include "carppriv.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "funcinfo.h"
 
 void func_info_print (FuncInfo *fi) {
     printf("fi: func=%s, args=%s\n"
