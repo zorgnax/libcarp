@@ -76,6 +76,17 @@ files instead of packages (as Perl does) to determine the trust divide.
 On Windows, the stack trace is recieved by walking the stack, and getting
 return addresses, which are looked up in the pdbs if they are available.
 
+This module trusts all functions up to the first shared library change. This
+means that when you call carp or croak it will print the first location it
+finds in a different shared library. with static libraries (libyup.a or
+yup.lib), it is impossible from a debugging standpoint to differentiate it from
+a normal object linking.
+
+This module differs slightly from the Carp module in C: Since it may be common
+for a program written in C to link with a static library that uses Carp, I
+decided not to default to a full stack trace when a trust boundary isn't found.
+Rather a carp will become like a warn.
+
 PLANS
 =====
 
