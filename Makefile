@@ -6,11 +6,12 @@ CFLAGS = $(DEBUG)
 all: $(CARPLIB)
 	$(MAKE) -C t/ all
 
-$(CARPLIB): carp$(_O) trace$(_O) funcinfo$(_O) list$(_O)
+$(CARPLIB): carp$(_O) trace$(_O) funcinfo$(_O) list$(_O) handy$(_O)
 carp$(_O): carp.c carp.h carppriv.h
 trace$(_O): $(if GNU, tracegdb.c, tracewin.c) carppriv.h
 funcinfo$(_O): funcinfo.c carppriv.h
 list$(_O): list.c carppriv.h
+handy$(_O): handy.c carppriv.h
 
 .PHONY: clean
 clean:

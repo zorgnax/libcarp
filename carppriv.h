@@ -1,6 +1,14 @@
 #ifndef __CARPPRIV_H__
 #define __CARPPRIV_H__
 
+#include <stdarg.h>
+
+/* handy  */
+int   mystrcmp  (const char *a, const char *b);
+int   getintenv (const char *var);
+char *vappend   (char *str, const char *fmt, va_list args);
+char *append    (char *str, const char *fmt, ...);
+
 /* list  */
 typedef struct _List List;
 
@@ -10,7 +18,7 @@ struct _List {
 };
 
 List *list_push (List *list, void *data);
-void list_free (List *list, void (*func) ());
+void  list_free (List *list, void (*func) ());
 
 /* funcinfo  */
 typedef struct {

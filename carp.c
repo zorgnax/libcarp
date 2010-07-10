@@ -20,11 +20,6 @@ static List           *trusted_libs    = NULL;
 static void  init          ();
 static char *vscarp_at_loc ();
 
-/* A strcmp that handles NULL values */
-static int mystrcmp (const char *a, const char *b) {
-    return a == b ? 0 : !a ? -1 : !b ? 1 : strcmp(a, b);
-}
-
 /*
 carp settings
 
@@ -124,42 +119,18 @@ void carp_set (const char *key, ...) {
     va_end(args);
 }
 
-static int getintenv (const char *var) {
-    char *val = getenv(var);
-    return val ? atoi(val) : 0;
-}
-
 static void init () {
     static int init = 0;
-    
     if (init++)
         return;
-
     carp_set(
-        "output",         getenv   ("CARP_OUTPUT"),
-        "verbose",        getintenv("CARP_VERBOSE"),
-        "muzzled",        getintenv("CARP_MUZZLED"),
-        "dump-stack",     getintenv("CARP_DUMP_STACK"),
-        "strip",          getintenv("CARP_STRIP"),
+        "output",     getenv   ("CARP_OUTPUT"),
+        "verbose",    getintenv("CARP_VERBOSE"),
+        "muzzled",    getintenv("CARP_MUZZLED"),
+        "dump-stack", getintenv("CARP_DUMP_STACK"),
+        "strip",      getintenv("CARP_STRIP"),
         NULL
     );
-}
-
-/* Appends a formatted string to a string. The result must be freed.  */
-static char *vappend (char *str, const char *fmt, va_list args) {
-    int str_size = str ? strlen(str) : 0;
-    int size = vsnprintf(NULL, 0, fmt, args) + str_size + 1;
-    str = realloc(str, size);
-    vsprintf(str + str_size, fmt, args);
-    return str;
-}
-
-static char *append (char *str, const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    str = vappend(str, fmt, args);
-    va_end(args);
-    return str;
 }
 
 typedef enum {
