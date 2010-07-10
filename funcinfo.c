@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void func_info_print (FuncInfo *fi) {
+void
+func_info_print (FuncInfo *fi) {
     printf("fi: func=%s, args=%s\n"
            "    file=%s, line=%d, lib=%s\n",
            fi->func,
@@ -12,7 +13,8 @@ void func_info_print (FuncInfo *fi) {
            fi->lib);
 }
 
-void func_info_free (FuncInfo *fi) {
+void
+func_info_free (FuncInfo *fi) {
     if (!fi)
         return;
     free(fi->func);
@@ -21,3 +23,4 @@ void func_info_free (FuncInfo *fi) {
     free(fi->lib);
     free(fi);
 }
+

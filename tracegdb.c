@@ -14,7 +14,8 @@ typedef struct {
     char *name;
 } SharedLib;
 
-static void shared_lib_free (SharedLib *lib) {
+static void
+shared_lib_free (SharedLib *lib) {
     if (!lib)
         return;
     free(lib->name);
@@ -23,7 +24,8 @@ static void shared_lib_free (SharedLib *lib) {
 
 /* Looks through the list of libs and finds if the given address is between the
 from and to addresses of the contained libraries.  */
-static char *get_lib_name (List *libs, void *addr) {
+static char *
+get_lib_name (List *libs, void *addr) {
     List *item;
     for (item = libs; item; item = item->next) {
         SharedLib *lib = item->data;
@@ -35,7 +37,8 @@ static char *get_lib_name (List *libs, void *addr) {
 
 /* Parses gdb's stdout fd after requesting a backtrace. The result is stored
 in a linked list of FuncInfo structures.  */
-static List *parse_stack_trace (int gdb) {
+static List *
+parse_stack_trace (int gdb) {
     int i;
     int parentheses_are_off = 0;
     char c;
@@ -263,7 +266,8 @@ static List *parse_stack_trace (int gdb) {
 }
 
 /* Spawns a gdb process and returns a linked list of the backtrace  */
-List *get_stack_trace () {
+List *
+get_stack_trace () {
     int in_fd[2], out_fd[2], status;
     pid_t pid;
     List *stack;

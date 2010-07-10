@@ -5,7 +5,8 @@
 #include <windows.h>
 #include <dbghelp.h>
 
-List *get_stack_trace () {
+List *
+get_stack_trace () {
     CONTEXT context = {0};
     STACKFRAME64 stackframe = {0};
     HANDLE process = GetCurrentProcess();

@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void output_builtin (const char *mesg) {
+static void
+output_builtin (const char *mesg) {
     fputs(mesg, stderr);
 }
 
@@ -16,7 +17,8 @@ List           *trusted_files   = NULL;
 List           *trusted_libs    = NULL;
 CarpOutputFunc  output          = output_builtin;
 
-void init () {
+void
+init () {
     static int init = 0;
     if (init++)
         return;
@@ -73,7 +75,8 @@ Comma separated list of lib names to be trusted.
 Defaults to environment var CARP_TRUSTED_LIBS
 
 */
-void carp_set (const char *key, ...) {
+void
+carp_set (const char *key, ...) {
     va_list args;
     init();
     va_start(args, key);

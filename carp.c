@@ -13,11 +13,8 @@ typedef enum {
 } CarpFlags;
 
 /* TODO newline should disable the file line backtrace madness  */
-static char *vcarp_message (const char *fmt,
-                            va_list     args,
-                            int         errnum,
-                            CarpFlags   flags)
-{
+static char *
+vcarp_message (const char *fmt, va_list args, int errnum, CarpFlags flags) {
     char *mesg = NULL;
     if (fmt && *fmt) {
         mesg = vappend(mesg, fmt, args);
@@ -33,13 +30,9 @@ static char *vcarp_message (const char *fmt,
     return mesg;
 }
 
-static char *vswarn_at_loc (CarpFlags   flags,
-                            const char *file,
-                            const char *func,
-                            int         line,
-                            int         errnum,
-                            const char *fmt,
-                            va_list     args)
+static char *
+vswarn_at_loc (CarpFlags flags, const char *file, const char *func, int line,
+               int errnum, const char *fmt, va_list args)
 {
     char *mesg;
     init();
@@ -50,13 +43,9 @@ static char *vswarn_at_loc (CarpFlags   flags,
     return mesg;
 }
 
-static void vwarn_at_loc (CarpFlags   flags,
-                          const char *file,
-                          const char *func,
-                          int         line,
-                          int         errnum,
-                          const char *fmt,
-                          va_list     args)
+static void
+vwarn_at_loc (CarpFlags flags, const char *file, const char *func, int line,
+              int errnum, const char *fmt, va_list args)
 {
     char *mesg = vswarn_at_loc(flags, file, func, line, errnum, fmt, args);
     output(mesg);
@@ -65,7 +54,8 @@ static void vwarn_at_loc (CarpFlags   flags,
         exit(255);
 }
 
-static FuncInfo *get_suspect (List *stack) {
+static FuncInfo *
+get_suspect (List *stack) {
     List *p;
     FuncInfo *occurs = stack->data;
     for (p = stack; p; p = p->next) {
@@ -77,13 +67,9 @@ static FuncInfo *get_suspect (List *stack) {
     return occurs;
 }
 
-static char *vscarp_at_loc (CarpFlags   flags,
-                            const char *file,
-                            const char *func,
-                            int         line,
-                            int         errnum,
-                            const char *fmt,
-                            va_list     args)
+static char *
+vscarp_at_loc (CarpFlags flags, const char *file, const char *func, int line,
+               int errnum, const char *fmt, va_list args)
 {
     List *stack;
     char *mesg;
@@ -122,13 +108,9 @@ static char *vscarp_at_loc (CarpFlags   flags,
     return mesg;
 }
 
-static void vcarp_at_loc (CarpFlags   flags,
-                          const char *file,
-                          const char *func,
-                          int         line,
-                          int         errnum,
-                          const char *fmt,
-                          va_list     args)
+static void
+vcarp_at_loc (CarpFlags flags, const char *file, const char *func, int line,
+              int errnum, const char *fmt, va_list args)
 {
     char *mesg = vscarp_at_loc(flags, file, func, line, errnum, fmt, args);
     output(mesg);
@@ -137,25 +119,21 @@ static void vcarp_at_loc (CarpFlags   flags,
         exit(255);
 }
 
-#define DEFINE_CARP_FUNC(name, intermsof, flags)               \
-    void name (const char *file,                               \
-               const char *func,                               \
-               int         line,                               \
-               int         errnum,                             \
-               const char *fmt, ...)                           \
-    {                                                          \
-        va_list args;                                          \
-        va_start(args, fmt);                                   \
-        intermsof(flags, file, func, line, errnum, fmt, args); \
-        va_end(args);                                          \
+#define DEFINE_CARP_FUNC(name, intermsof, flags)                    \
+    void                                                            \
+    name (const char *file, const char *func, int line, int errnum, \
+          const char *fmt, ...)                                     \
+    {                                                               \
+        va_list args;                                               \
+        va_start(args, fmt);                                        \
+        intermsof(flags, file, func, line, errnum, fmt, args);      \
+        va_end(args);                                               \
     }
 
 #define DEFINE_SCARP_FUNC(name, intermsof, flags)                     \
-    char *name (const char *file,                                     \
-                const char *func,                                     \
-                int         line,                                     \
-                int         errnum,                                   \
-                const char *fmt, ...)                                 \
+    char *                                                            \
+    name (const char *file, const char *func, int line, int errnum,   \
+          const char *fmt, ...)                                       \
     {                                                                 \
         char *mesg;                                                   \
         va_list args;                                                 \

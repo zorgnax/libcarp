@@ -2,7 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 
-void dump (List *stack) {
+void
+dump (List *stack) {
     List *p;
     printf("---\n");
     for (p = stack; p; p = p->next) {
@@ -14,7 +15,8 @@ void dump (List *stack) {
 /* Trims off carp library specifics and elements past main. Outside of this
 file a stack refers to a trimmed stack starting at the frame that through the
 error (with carp, cluck whatever...) till the main frame (and no furthur)  */
-List *get_trimmed_stack_trace (int dump_stack) {
+List *
+get_trimmed_stack_trace (int dump_stack) {
     List *stack, *p;
     FuncInfo *f;
     stack = get_stack_trace();

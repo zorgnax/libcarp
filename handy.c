@@ -4,17 +4,20 @@
 #include <stdio.h>
 
 /* A strcmp that handles NULL values */
-int mystrcmp (const char *a, const char *b) {
+int
+mystrcmp (const char *a, const char *b) {
     return a == b ? 0 : !a ? -1 : !b ? 1 : strcmp(a, b);
 }
 
-int getintenv (const char *var) {
+int
+getintenv (const char *var) {
     char *val = getenv(var);
     return val ? atoi(val) : 0;
 }
 
 /* Appends a formatted string to a string. The result must be freed.  */
-char *vappend (char *str, const char *fmt, va_list args) {
+char *
+vappend (char *str, const char *fmt, va_list args) {
     int str_size = str ? strlen(str) : 0;
     int size = vsnprintf(NULL, 0, fmt, args) + str_size + 1;
     str = realloc(str, size);
@@ -22,7 +25,8 @@ char *vappend (char *str, const char *fmt, va_list args) {
     return str;
 }
 
-char *append (char *str, const char *fmt, ...) {
+char *
+append (char *str, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     str = vappend(str, fmt, args);
