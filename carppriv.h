@@ -34,7 +34,9 @@ void func_info_print (FuncInfo *fi);
 void func_info_free  (FuncInfo *fi);
 
 /* trace  */
-List *get_stack_trace ();
+List *get_stack_trace         ();
+void  dump                    (List *stack);
+List *get_trimmed_stack_trace (int dump_stack);
 
 #endif
 
