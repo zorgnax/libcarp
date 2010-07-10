@@ -36,6 +36,9 @@ BAR = $(filter %-bar$(_O), $(O))
 .PHONY: all
 all: $(X) ../$(CARPLIB)
 
+../$(CARPLIB):
+	$(error error $(CARPLIB) needs to be built)
+
 $(X): ../$(CARPLIB) $(TAPLIB)
 $(O): ../carp.h tap.h
 $(TEST): test.c foo.h bar.h
