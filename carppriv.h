@@ -1,6 +1,7 @@
 #ifndef __CARPPRIV_H__
 #define __CARPPRIV_H__
 
+#include "carp.h"
 #include <stdarg.h>
 
 /* handy  */
@@ -32,6 +33,17 @@ typedef struct {
 
 void func_info_print (FuncInfo *fi);
 void func_info_free  (FuncInfo *fi);
+
+/* config  */
+extern int             verbose;
+extern int             muzzled;
+extern int             dump_stack;
+extern int             strip;
+extern List           *trusted_files;
+extern List           *trusted_libs;
+extern CarpOutputFunc  output;
+
+void init ();
 
 /* trace  */
 List *get_stack_trace         ();
