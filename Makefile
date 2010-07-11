@@ -3,7 +3,9 @@ include config.mk
 CFLAGS = $(DEBUG)
 
 .PHONY: all
-all: $(CARPLIB)
+all: $(CARPLIB) t
+
+t: $(CARPLIB)
 	$(MAKE) -C t/ all
 
 $(CARPLIB): carp$(_O) config$(_O) tracedef$(_O) trace$(_O) funcinfo$(_O) \
@@ -15,6 +17,10 @@ trace$(_O): trace.c carppriv.h
 funcinfo$(_O): funcinfo.c carppriv.h
 list$(_O): list.c carppriv.h
 handy$(_O): handy.c carppriv.h
+
+.PHONY: check
+check: t
+	prove -e '' `find t -perm -u+x -name '*-test'`
 
 .PHONY: clean
 clean:
