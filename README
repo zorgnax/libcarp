@@ -88,12 +88,8 @@ Rather a carp will become like a warn.
 PLANS
 =====
 
-Fix tests.
-Windows too.
-Settings too.
-Change strip to strip_to which will leave a number of path elements.
+Test settings.
 Remove plan for trusted/suspected files. We dont need em.
 Implement trusted/suspected libs.
-color_output_builtin().
 Document better.
 

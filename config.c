@@ -24,7 +24,6 @@ init () {
     if (init++)
         return;
     carp_set(
-        "output",     getenv   ("CARP_OUTPUT"),
         "verbose",    getintenv("CARP_VERBOSE"),
         "muzzled",    getintenv("CARP_MUZZLED"),
         "dump-stack", getintenv("CARP_DUMP_STACK"),
@@ -52,8 +51,7 @@ Print as much info as you can about the stack.
 Defaults to environment var CARP_DUMP_STACK
 
 "output" char*
-may be "default" or "color" as builtin output funcs.
-Defaults to environment var CARP_OUTPUT
+may be "default" to set the output back to the builtin output func.
 
 "output-func" func
 A CarpOutputFunc to output the error message.
@@ -105,8 +103,6 @@ carp_set (const char *key, ...) {
             const char *value = va_arg(args, const char *);
             if (!value || eq(value, "default"))
                 output = output_builtin;
-            else if (eq(value, "color"))
-                croak("Color output has not been implemented yet");
             else
                 croak("Unknown output builtin '%s'", value);
         }
