@@ -5,6 +5,7 @@ CFLAGS = $(DEBUG)
 .PHONY: all
 all: $(CARPLIB) t
 
+.PHONY: t
 t: $(CARPLIB)
 	$(MAKE) -C t/ all
 

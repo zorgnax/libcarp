@@ -68,7 +68,6 @@ parse_stack_trace (int gdb) {
         case NONE:
             if (c == '#') {
                 f = calloc(sizeof (FuncInfo), 1);
-                state = ADDR;
                 while (read(gdb, &c, 1))
                     if (!isdigit(c))
                         break;
@@ -76,6 +75,7 @@ parse_stack_trace (int gdb) {
                     if (!isspace(c)) {
                         buf[0] = c;
                         i = 1;
+                        state = isdigit(c) ? ADDR : FUNC;
                         break;
                     }
             }

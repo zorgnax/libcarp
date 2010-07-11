@@ -5,6 +5,10 @@
 
 int
 main () {
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    plan(9);
+
     ok(1, "library compiled and is being used");
 
 #if defined DEBUGGED && defined DYNAMIC
