@@ -81,47 +81,47 @@ carp_set (const char *key, ...) {
     init();
     va_start(args, key);
     for (; key; key = va_arg(args, const char *)) {
-        if (!strcmp(key, "verbose")) {
+        if (eq(key, "verbose")) {
             verbose = va_arg(args, int);
             if (verbose)
                 muzzled = 0;
         }
-        else if (!strcmp(key, "muzzled")) {
+        else if (eq(key, "muzzled")) {
             muzzled = va_arg(args, int);
             if (muzzled)
                 verbose = 0;
         }
-        else if (!strcmp(key, "dump-stack")) {
+        else if (eq(key, "dump-stack")) {
             dump_stack = va_arg(args, int);
         }
-        else if (!strcmp(key, "output")) {
+        else if (eq(key, "output")) {
             const char *value = va_arg(args, const char *);
-            if (!value || !mystrcmp(value, "default"))
+            if (!value || eq(value, "default"))
                 output = output_builtin;
-            else if (!mystrcmp(value, "color"))
+            else if (eq(value, "color"))
                 croak("Color output has not been implemented yet");
             else
                 croak("Unknown output builtin '%s'", value);
         }
-        else if (!strcmp(key, "output-func")) {
+        else if (eq(key, "output-func")) {
             output = va_arg(args, CarpOutputFunc);
         }
-        else if (!strcmp(key, "strip")) {
+        else if (eq(key, "strip")) {
             strip = va_arg(args, int);
         }
-        else if (!strcmp(key, "suspected-files")) {
+        else if (eq(key, "suspected-files")) {
             trusted_files = NULL;
             /* TODO  */
         }
-        else if (!strcmp(key, "suspected-libs")) {
+        else if (eq(key, "suspected-libs")) {
             trusted_libs = NULL;
             /* TODO  */
         }
-        else if (!strcmp(key, "trusted-files")) {
+        else if (eq(key, "trusted-files")) {
             trusted_files = NULL;
             /* TODO  */
         }
-        else if (!strcmp(key, "trusted-libs")) {
+        else if (eq(key, "trusted-libs")) {
             trusted_libs = NULL;
             /* TODO  */
         }

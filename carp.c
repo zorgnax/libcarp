@@ -60,7 +60,7 @@ get_suspect (List *stack) {
     FuncInfo *occurs = stack->data;
     for (p = stack; p; p = p->next) {
         FuncInfo *f = p->data;
-        if (mystrcmp(f->lib, occurs->lib))
+        if (ne(f->lib, occurs->lib))
             return f;
     }
     /* Without a suspect, default to where the error occured  */

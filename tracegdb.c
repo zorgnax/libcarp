@@ -127,7 +127,7 @@ parse_stack_trace (int gdb) {
             else {
                 buf[i] = 0;
                 i = 0;
-                if (!strcmp(buf, "Yes"))
+                if (eq(buf, "Yes"))
                     lib->readsyms = 1;
                 read(gdb, buf, 3);
                 if (strncmp(buf, "(*)", 3))

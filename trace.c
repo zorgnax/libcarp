@@ -26,13 +26,13 @@ get_trimmed_stack_trace (int dump_stack) {
         dump(stack);
     for (p = stack; p; p = p->next) {
         f = p->data;
-        if (!strcmp(f->func, "vscarp_at_loc") ||
-            !strcmp(f->func, "vswarn_at_loc"))
+        if (eq(f->func, "vscarp_at_loc") ||
+            eq(f->func, "vswarn_at_loc"))
         {
             List *old_stack = stack;
             FuncInfo *nextf = p->next->data;
-            if (!strcmp(nextf->func, "vcarp_at_loc") ||
-                !strcmp(nextf->func, "vwarn_at_loc"))
+            if (eq(nextf->func, "vcarp_at_loc") ||
+                eq(nextf->func, "vwarn_at_loc"))
             {
                 stack = p->next->next->next;
                 p->next->next->next = NULL;
@@ -47,7 +47,7 @@ get_trimmed_stack_trace (int dump_stack) {
     }
     for (p = stack; p->next; p = p->next) {
         f = (FuncInfo *) p->data;
-        if (!strcmp(f->func, "main") || !strcmp(f->func, "WinMain")) {
+        if (eq(f->func, "main") || eq(f->func, "WinMain")) {
             list_free(p->next, func_info_free);
             p->next = NULL;
             break;

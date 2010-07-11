@@ -10,6 +10,9 @@ int   getintenv (const char *var);
 char *vappend   (char *str, const char *fmt, va_list args);
 char *append    (char *str, const char *fmt, ...);
 
+#define eq(a, b) (!mystrcmp(a, b))
+#define ne(a, b) (mystrcmp(a, b))
+
 /* list  */
 typedef struct _List List;
 
