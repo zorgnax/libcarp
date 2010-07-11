@@ -85,8 +85,11 @@ vscarp_at_loc (CarpFlags flags, const char *file, const char *func, int line,
         for (prev = NULL, cur = stack; cur; prev = cur, cur = cur->next) {
             FuncInfo *prevf = prev ? prev->data : NULL;
             FuncInfo *curf = cur->data;
-            if (prevf)
-                mesg = append(mesg, "    %s() called", prevf->func);
+            if (prevf) {
+                mesg = append(mesg, "    %s()", prevf->func);
+                if (curf->file || !prev || curf->lib)
+                    mesg = append(mesg, " called");
+            }
             if (curf->file)
                 mesg = append(mesg, " at %s line %d", curf->file, curf->line);
             else if (!prev)
