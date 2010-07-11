@@ -3,7 +3,8 @@
 #include "foo.h"
 #include "bar.h"
 
-int main () {
+int
+main () {
     ok(1, "library compiled and is being used");
 
 #ifdef DEBUGGED

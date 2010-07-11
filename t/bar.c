@@ -1,18 +1,22 @@
 #include "carp.h"
 #include "bar.h"
 
-char *bara () {
+char *
+bara () {
     return scarp("carp from bara");
 }
 
-char *barb () {
+char *
+barb () {
     return sconfess("confess from barb");
 }
 
-char *barc () {
+char *
+barc () {
     return scroak("croak from barc");
 }
 
-char *bard () {
+char *
+bard () {
     return scluck("cluck from bard");
 }

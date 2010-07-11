@@ -2,34 +2,42 @@
 #include "foo.h"
 #include "bar.h"
 
-char *fooa () {
+char *
+fooa () {
     return scarp("carp from fooa");
 }
 
-char *foob () {
+char *
+foob () {
     return sconfess("confess from foob");
 }
 
-char *fooc () {
+char *
+fooc () {
     return scroak("croak from fooc");
 }
 
-char *food () {
+char *
+food () {
     return scluck("cluck from food");
 }
 
-char *fooe () {
+char *
+fooe () {
     return bara();
 }
 
-char *foof () {
+char *
+foof () {
     return barb();
 }
 
-char *foog () {
+char *
+foog () {
     return barc();
 }
 
-char *fooh () {
+char *
+fooh () {
     return bard();
 }
