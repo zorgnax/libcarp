@@ -1,7 +1,6 @@
 include ../config.mk
 
 LDFLAGS = $(if GNU, $(subst ,, -L. -Wl,--rpath=.:t))
-LDFLAGS += ../$(CARPLIB)
 ALLCFLAGS += -I..
 
 DSFOOLIB  = $(if GNU, libdsfoo.a,   dsfoo.lib)
@@ -38,12 +37,6 @@ all: $(X) ../$(CARPLIB)
 
 ../$(CARPLIB):
 	$(error error $(CARPLIB) needs to be built)
-
-$(X): ../$(CARPLIB) $(TAPLIB)
-$(O): ../carp.h tap.h
-$(TEST): test.c foo.h bar.h
-$(FOO): foo.c foo.h bar.h
-$(BAR): bar.c bar.h
 
 # included tap lib
 $(TAPLIB): CFLAGS = $(DEBUG)
@@ -85,6 +78,12 @@ $(X5): CFLAGS = -DNOTDEBUGGED -DDYNAMIC $(PIC)
 $(X5): not-debugged-dynamic-test$(_O) $(NDDFOOLIB) $(NDDBARLIB)
 $(NDDFOOLIB): not-debugged-dynamic-foo$(_O)
 $(NDDBARLIB): not-debugged-dynamic-bar$(_O)
+
+$(X): ../$(CARPLIB) $(TAPLIB)
+$(O): ../carp.h tap.h
+$(TEST): test.c foo.h bar.h
+$(FOO): foo.c foo.h bar.h
+$(BAR): bar.c bar.h
 
 .PHONY: clean
 clean:

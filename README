@@ -23,25 +23,25 @@ SYNOPSIS
 ========
 
     #include <carp.h>
-    #line 3 "libb"
-    void foo4() {
+    #line 1 "libb.c"
+    void foo4 () {
         warn("warn");
         carp("carp");
         cluck("cluck");
     }
-    void foo3() {foo4();}
-    #line 10 "liba"
-    void foo2() {foo3();}
-    void foo1() {foo2();}
-    void bar2() {
+    void foo3 () {foo4();}
+    #line 1 "liba.c"
+    void foo2 () {foo3();}
+    void foo1 () {foo2();}
+    void bar2 () {
         warn("warn");
         carp("carp");
-        cluck("cluck");
+        confess("confess");
         croak("croak");
     }
-    void bar1() {bar2();}
-    #line 20 "test1.c"
-    int main() {
+    void bar1 () {bar2();}
+    #line 1 "test1.c"
+    int main () {
         foo1();
         bar1();
         return 0;
@@ -49,19 +49,18 @@ SYNOPSIS
 
 Results in:
 
-    warn at libb line 4
-    carp at liba line 10
-    cluck at libb line 6
-        foo4() called at libb line 8
-        foo3() called at liba line 10
-        foo2() called at liba line 11
-        foo1() called at test1.c line 21
-    warn at liba line 13
-    carp at test1.c line 22
-    cluck at liba line 15
-        bar2() called at liba line 18
-        bar1() called at test1.c line 22
-    croak at test1.c line 22
+    warn at libb.c line 2
+    carp at libb.c line 3
+    cluck at libb.c line 4
+        foo4() called at libb.c line 6
+        foo3() called at liba.c line 1
+        foo2() called at liba.c line 2
+        foo1() called at test1.c line 2
+    warn at liba.c line 4
+    carp at liba.c line 5
+    confess at liba.c line 6
+        bar2() called at liba.c line 9
+        bar1() called at test1.c line 3
 
 
 DESCRIPTION
