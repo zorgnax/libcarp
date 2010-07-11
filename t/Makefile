@@ -26,7 +26,7 @@ X4-2 = not-debugged-staticlib-test$(_X)
 O5 = not-debugged-dynamic-test$(_O) not-debugged-dynamic-foo$(_O) not-debugged-dynamic-bar$(_O)
 X5 = not-debugged-dynamiclib-test$(_X)
 O = $(O1) $(O2) $(O3) $(O4) $(O5)
-X = $(X1) $(X2-1) $(X2-2) $(X3) $(X4-1) $(X4-4) $(X5)
+X = $(X1) $(X2-1) $(X2-2) $(X3) $(X4-1) $(X4-2) $(X5)
 
 TEST = $(filter %-test$(_O), $(O))
 FOO = $(filter %-foo$(_O), $(O))
