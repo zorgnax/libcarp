@@ -12,7 +12,8 @@ output_builtin (const char *mesg) {
 int             verbose         = 0;
 int             muzzled         = 0;
 int             dump_stack      = 0;
-int             strip           = 0;
+int             strip_off       = 0;
+int             strip_to        = 0;
 List           *trusted_files   = NULL;
 List           *trusted_libs    = NULL;
 CarpOutputFunc  output          = output_builtin;
@@ -28,6 +29,7 @@ init () {
         "muzzled",    getintenv("CARP_MUZZLED"),
         "dump-stack", getintenv("CARP_DUMP_STACK"),
         "strip",      getintenv("CARP_STRIP"),
+        "strip-to",   getintenv("CARP_STRIP_TO"),
         NULL
     );
 }
@@ -59,6 +61,11 @@ A CarpOutputFunc to output the error message.
 "strip" int
 The number of items to remove from the file names.
 Defaults to environment var CARP_STRIP
+
+"strip-to" int
+The number of items to keep from the file names. If strip-to is 1,
+foo/bar/baz.c becomes baz.c.
+Defaults to environment var CARP_STRIP_TO
 
 "suspected-files" char*
 Comma separated list of file names to remove from the list of trusted files.
@@ -107,7 +114,16 @@ carp_set (const char *key, ...) {
             output = va_arg(args, CarpOutputFunc);
         }
         else if (eq(key, "strip")) {
-            strip = va_arg(args, int);
+            strip_off = va_arg(args, int);
+            strip_off = MAX(0, strip_off);
+            if (strip_off)
+                strip_to = 0;
+        }
+        else if (eq(key, "strip-to")) {
+            strip_to = va_arg(args, int);
+            strip_to = MAX(0, strip_to);
+            if (strip_to)
+                strip_off = 0;
         }
         else if (eq(key, "suspected-files")) {
             trusted_files = NULL;
@@ -132,3 +148,24 @@ carp_set (const char *key, ...) {
     va_end(args);
 }
 
+/* Strips a file name to a specified number of path elements.  */
+const char *
+strip (const char *file) {
+    const char *p;
+    int n = 0;
+    if (!file)
+        return NULL;
+    for (p = file; *p; p++) {
+        if (*p == '/' || *p == '\\') {
+            if (++n == strip_off)
+                return p + 1;
+        }
+    }
+    for (p = file; *p; p++) {
+        if (*p == '/' || *p == '\\') {
+            if (--n + 1 == strip_to)
+                return p + 1;
+        }
+    }
+    return file;
+}

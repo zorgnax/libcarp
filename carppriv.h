@@ -12,6 +12,7 @@ char *append    (char *str, const char *fmt, ...);
 
 #define eq(a, b) (!mystrcmp(a, b))
 #define ne(a, b) (mystrcmp(a, b))
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 
 /* list  */
 typedef struct _List List;
@@ -41,12 +42,14 @@ void func_info_free  (FuncInfo *fi);
 extern int             verbose;
 extern int             muzzled;
 extern int             dump_stack;
-extern int             strip;
+extern int             strip_off;
+extern int             strip_to;
 extern List           *trusted_files;
 extern List           *trusted_libs;
 extern CarpOutputFunc  output;
 
-void init ();
+void        init  ();
+const char *strip (const char *file);
 
 /* trace  */
 List *get_stack_trace         ();

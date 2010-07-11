@@ -29,21 +29,27 @@
 #define sconfess(...)   sconfess_at_loc  (__FILE__, __FUNCTION__, __LINE__, 0,     ## __VA_ARGS__, NULL)
 #define esconfess(...)  sconfess_at_loc  (__FILE__, __FUNCTION__, __LINE__, errno, ## __VA_ARGS__, NULL)
 
-void  warn_at_loc      (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-void  die_at_loc       (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-void  carp_at_loc      (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-void  croak_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-void  cluck_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-void  confess_at_loc   (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-char *swarn_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-char *sdie_at_loc      (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-char *scarp_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-char *scroak_at_loc    (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-char *scluck_at_loc    (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
-char *sconfess_at_loc  (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+#ifdef _WIN32
+#   define CARP_EXP __declspec(dllexport)
+#else
+#   define CARP_EXP
+#endif
+
+CARP_EXP void  warn_at_loc      (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP void  die_at_loc       (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP void  carp_at_loc      (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP void  croak_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP void  cluck_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP void  confess_at_loc   (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP char *swarn_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP char *sdie_at_loc      (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP char *scarp_at_loc     (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP char *scroak_at_loc    (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP char *scluck_at_loc    (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
+CARP_EXP char *sconfess_at_loc  (const char *file, const char *func, int line, int errnum, const char *fmt, ...);
 
 typedef void (*CarpOutputFunc) (const char *mesg);
-void carp_set (const char *key, ...);
+CARP_EXP void carp_set (const char *key, ...);
 
 #endif
 

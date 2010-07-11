@@ -29,23 +29,19 @@ food () {
 char *
 fooe () {
 #line 55
-    return bara();
-}
+    return bara();} /* microsoft's cpp messes up by one line unless I do this */
 
 char *
 foof () {
 #line 55
-    return barb();
-}
+    return barb();}
 
 char *
 foog () {
 #line 55
-    return barc();
-}
+    return barc();}
 
 char *
 fooh () {
 #line 55
-    return bard();
-}
+    return bard();}

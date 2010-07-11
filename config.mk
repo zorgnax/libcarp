@@ -13,7 +13,7 @@ ifdef GNU
 	_SO = .so
 	CARPLIB = libcarp.a
 	STATICLIB.o = $(AR) rcs $@ $(filter %$(_O), $^)
-	DYNAMICLIB.o = $(CC) -shared -o $@ $(filter %$(_O), $^)
+	DYNAMICLIB.o = $(CC) -shared -o $@ $(filter %$(_O), $^) $(LDFLAGS)
 else
 	CC = cl /nologo
 	ALLCFLAGS = /Wall /wd4255 /wd4996 /wd4127 /wd4820 \
@@ -28,11 +28,13 @@ else
 	_A = .lib
 	_SO = .dll
 	CARPLIB = carp.lib
-	STATICLIB.o = lib /nologo /out:$@ $(filter %$(_O), $^)
-	DYNAMICLIB.o = lib /nologo /out:$@ $(filter %$(_O), $^)
+	STATICLIB.o = lib /nologo /out:$@ $(filter %$(_O), $^) $(LDFLAGS)
+	DYNAMICLIB.o = link /nologo /out:$@ /dll $(LINKFLAGS) /machine:x86 \
+                   $(patsubst %.dll, %.lib, $(filter %$(_O) %.lib %.dll, $^))
 endif
 COMPILE.c = $(CC) $(CCFLAGS) $(CPPFLAGS) $(ALLCFLAGS) $(CCOUT)$@ $(filter %.c, $^)
-LINK.o = $(CC) $(ALLCFLAGS) $(CLOUT)$@ $(filter %$(_O) %.a %.so %.lib %.dll, $^) $(LDFLAGS)
+LINK.o = $(CC) $(ALLCFLAGS) $(CLOUT)$@ $(patsubst %.dll, %.lib, \
+         $(filter %$(_O) %.a %.so %.lib %.dll, $^)) $(LDFLAGS)
 
 %$(_X):; $(LINK.o)
 %$(_A):; $(STATICLIB.o)

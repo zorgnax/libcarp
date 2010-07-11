@@ -39,7 +39,7 @@ vswarn_at_loc (CarpFlags flags, const char *file, const char *func, int line,
     if (verbose)
         return vscarp_at_loc(flags, file, func, line, errnum, fmt, args);
     mesg = vcarp_message(flags, errnum, fmt, args);
-    mesg = append(mesg, " at %s line %d\n", file, line);
+    mesg = append(mesg, " at %s line %d\n", strip(file), line);
     return mesg;
 }
 
@@ -79,7 +79,7 @@ vscarp_at_loc (CarpFlags flags, const char *file, const char *func, int line,
     mesg = vcarp_message(flags, errnum, fmt, args);
     stack = get_trimmed_stack_trace(dump_stack);
     if (!stack)
-        return append(mesg, " at %s line %d\n", file, line);
+        return append(mesg, " at %s line %d\n", strip(file), line);
     if (verbose || flags & CLUCK) {
         List *cur, *prev;
         for (prev = NULL, cur = stack; cur; prev = cur, cur = cur->next) {
@@ -91,9 +91,10 @@ vscarp_at_loc (CarpFlags flags, const char *file, const char *func, int line,
                     mesg = append(mesg, " called");
             }
             if (curf->file)
-                mesg = append(mesg, " at %s line %d", curf->file, curf->line);
+                mesg = append(mesg, " at %s line %d", strip(curf->file),
+                                                      curf->line);
             else if (!prev)
-                mesg = append(mesg, " at %s line %d", file, line);
+                mesg = append(mesg, " at %s line %d", strip(file), line);
             else if (curf->lib)
                 mesg = append(mesg, " from %s", curf->lib);
             mesg = append(mesg, "\n");
@@ -102,9 +103,9 @@ vscarp_at_loc (CarpFlags flags, const char *file, const char *func, int line,
     else {
         FuncInfo *suspect = get_suspect(stack);
         if (!suspect || !suspect->file)
-            mesg = append(mesg, " at %s line %d\n", file, line);
+            mesg = append(mesg, " at %s line %d\n", strip(file), line);
         else
-            mesg = append(mesg, " at %s line %d\n", suspect->file,
+            mesg = append(mesg, " at %s line %d\n", strip(suspect->file),
                                                     suspect->line);
     }
     list_free(stack, func_info_free);
