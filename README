@@ -90,35 +90,12 @@ Rather a carp will become like a warn.
 PLANS
 =====
 
-Perl's Carp package reads @CARP_NOT or @ISA to determine more packages to
-trust. This library should have a similar function.
+Fix tests.
+Windows too.
+Settings too.
+Change strip to strip_to which will leave a number of path elements.
+Remove plan for trusted/suspected files. We dont need em.
+Implement trusted/suspected libs.
+color_output_builtin().
+Document better.
 
-Define a way to specify callbacks to occur just before the message is printed 
-so it could be redirected or debugged. This will require gathering the message
-in one big string rather than printed in pieces. carp_set_output_func(), and a
-nice to have would be a
-    carp_color_output("warn", "red", "die", "bold magenta", "loc", "green")
-which would set the output func to be colored using windows.h console functions
-or ansi escape codes depending on what the library is compiled for.
-
-A setting like NDEBUG to go to a warn or die without first trying to get a
-stack trace. carp_never_confess()
-
-A setting like CONFESS_ALWAYS that changes all the others to do a full stack
-trace all the time. carp_always_confess()
-
-There should be a a way to return strings, rather than print.
-
-carp_strip(int n): number of components to strip off filenames (windows builds
-give full file names like c:\save\sandbox\libcarp\t\main.c) so it may be useful
-to have a line like this in your main:
-
-    #ifdef _WIN32
-    carp_strip(4);
-    #endif
-
-Better tests. Right now the t/ dir has a few example programs which can be run
-and inspected for proper behavior, but are not yet full-fledged tests since
-there are differences in windows and gnu output (filenames, libs). Example
-programs show the short synopsis, a typical debugged program, and a typical
-not-debugged program.
