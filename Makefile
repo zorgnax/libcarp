@@ -23,9 +23,10 @@ handy$(_O): handy.c carppriv.h
 .PHONY: check
 check: t
 ifdef GNU
-	prove -e '' t/*-test
+	prove -e '' t/*-test t/trusted-libs
 else
-	perl -e "system 'prove', '-q', '-m', '-e', '', glob('t/*-test.exe')"
+	perl -e "system 'prove', '-q', '-m', '-e', '', \
+	glob('t/*-test.exe'), 'trusted-libs.exe'"
 endif
 
 .PHONY: clean

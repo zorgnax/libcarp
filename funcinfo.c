@@ -4,7 +4,7 @@
 
 void
 func_info_print (FuncInfo *fi) {
-    printf("fi: func=%s, args=%s\n"
+    printf("==> %s, args=%s\n"
            "    file=%s, line=%d, lib=%s\n",
            fi->func,
            fi->args,

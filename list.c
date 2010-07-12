@@ -25,3 +25,32 @@ list_free (List *list, void (*func) ()) {
     }
 }
 
+List *
+list_remove (List *list, void *data, int (*cmpfunc) (), void (*freefunc) ()) {
+    List *tmp, *prev;
+    for (prev = NULL, tmp = list; tmp; prev = tmp, tmp = tmp->next) {
+        if (cmpfunc ? cmpfunc(tmp->data, data) : (tmp->data != data))
+            continue;
+        if (prev)
+            prev->next = tmp->next;
+        else
+            list = tmp->next;
+        tmp->next = NULL;
+        list_free(tmp, freefunc);
+        tmp = prev;
+        if (!tmp)
+            break;
+    }
+    return list;
+}
+
+List *
+list_find(List *list, void *data, int (*cmpfunc) ()) {
+    List *item;
+    for (item = list; item; item = item->next) {
+        if (cmpfunc ? !cmpfunc(item->data, data) : (item->data == data))
+            return item;
+    }
+    return NULL;
+}
+

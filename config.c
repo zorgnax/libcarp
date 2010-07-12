@@ -14,7 +14,6 @@ int             muzzled         = 0;
 int             dump_stack      = 0;
 int             strip_off       = 0;
 int             strip_to        = 0;
-List           *trusted_files   = NULL;
 List           *trusted_libs    = NULL;
 CarpOutputFunc  output          = output_builtin;
 
@@ -24,11 +23,12 @@ init () {
     if (init++)
         return;
     carp_set(
-        "verbose",    getintenv("CARP_VERBOSE"),
-        "muzzled",    getintenv("CARP_MUZZLED"),
-        "dump-stack", getintenv("CARP_DUMP_STACK"),
-        "strip",      getintenv("CARP_STRIP"),
-        "strip-to",   getintenv("CARP_STRIP_TO"),
+        "verbose",      getintenv("CARP_VERBOSE"),
+        "muzzled",      getintenv("CARP_MUZZLED"),
+        "dump-stack",   getintenv("CARP_DUMP_STACK"),
+        "strip",        getintenv("CARP_STRIP"),
+        "strip-to",     getintenv("CARP_STRIP_TO"),
+        "trusted-libs", getenv   ("CARP_TRUSTED_LIBS"),
         NULL
     );
 }
@@ -65,15 +65,8 @@ The number of items to keep from the file names. If strip-to is 1,
 foo/bar/baz.c becomes baz.c.
 Defaults to environment var CARP_STRIP_TO
 
-"suspected-files" char*
-Comma separated list of file names to remove from the list of trusted files.
-
 "suspected-libs" char*
 Comma separated list of lib names to remove from the list of trusted libs.
-
-"trusted-files" char*
-Comma separated list of file names to be trusted.
-Defaults to environment var CARP_TRUSTED_FILES
 
 "trusted-libs" char*
 Comma separated list of lib names to be trusted.
@@ -121,21 +114,21 @@ carp_set (const char *key, ...) {
             if (strip_to)
                 strip_off = 0;
         }
-        else if (eq(key, "suspected-files")) {
-            trusted_files = NULL;
-            /* TODO  */
-        }
-        else if (eq(key, "suspected-libs")) {
-            trusted_libs = NULL;
-            /* TODO  */
-        }
-        else if (eq(key, "trusted-files")) {
-            trusted_files = NULL;
-            /* TODO  */
-        }
-        else if (eq(key, "trusted-libs")) {
-            trusted_libs = NULL;
-            /* TODO  */
+        else if (eq(key, "suspected-libs") || eq(key, "trusted-libs")) {
+            char *libs = va_arg(args, char *);
+            char *lib;
+            if (!libs)
+                continue;
+            libs = strdup(libs);
+            lib = strtok(libs, ",");
+            while (lib) {
+                if (eq(key, "trusted-libs"))
+                    trusted_libs = list_push(trusted_libs, strdup(lib));
+                else
+                    trusted_libs = list_remove(trusted_libs, lib, strcmp, free);
+                lib = strtok(NULL, ",");
+            }
+            free(libs);
         }
         else {
             croak("Unknown setting name '%s'", key);
@@ -146,22 +139,27 @@ carp_set (const char *key, ...) {
 
 /* Strips a file name to a specified number of path elements.  */
 const char *
-strip (const char *file) {
+nstrip (const char *file, int off, int to) {
     const char *p;
     int n = 0;
     if (!file)
         return NULL;
     for (p = file; *p; p++) {
         if (*p == '/' || *p == '\\') {
-            if (++n == strip_off)
+            if (++n == off)
                 return p + 1;
         }
     }
     for (p = file; *p; p++) {
         if (*p == '/' || *p == '\\') {
-            if (--n + 1 == strip_to)
+            if (--n + 1 == to)
                 return p + 1;
         }
     }
     return file;
+}
+
+const char *
+strip (const char *file) {
+    return nstrip(file, strip_off, strip_to);
 }

@@ -27,8 +27,9 @@ X4-2 = not-debugged-staticlib-test$(_X)
 O5 = not-debugged-dynamic-test$(_O) not-debugged-dynamic-foo$(_O) \
      not-debugged-dynamic-bar$(_O)
 X5 = not-debugged-dynamiclib-test$(_X)
+X6 = trusted-libs$(_X)
 O = $(O1) $(O2) $(O3) $(O4) $(O5)
-X = $(X1) $(X2-1) $(X2-2) $(X3) $(X4-1) $(X4-2) $(X5)
+X = $(X1) $(X2-1) $(X2-2) $(X3) $(X4-1) $(X4-2) $(X5) $(X6)
 
 TEST = $(filter %-test$(_O), $(O))
 FOO = $(filter %-foo$(_O), $(O))
@@ -81,6 +82,12 @@ $(X5): CFLAGS = -DNOTDEBUGGED -DDYNAMIC $(PIC)
 $(X5): not-debugged-dynamic-test$(_O) $(NDDFOOLIB) $(NDDBARLIB)
 $(NDDFOOLIB): not-debugged-dynamic-foo$(_O) $(NDDBARLIB) ../$(CARPLIB)
 $(NDDBARLIB): not-debugged-dynamic-bar$(_O) ../$(CARPLIB)
+
+# trusted libs
+$(X6): CFLAGS = $(DEBUG) $(PIC)
+$(X6): LINKFLAGS = -debug
+$(X6): trusted-libs$(_O) $(DDFOOLIB) $(DDBARLIB)
+trusted-libs$(_O): trusted-libs.c foo.h bar.h
 
 # dependencies
 $(X): ../$(CARPLIB) $(TAPLIB)

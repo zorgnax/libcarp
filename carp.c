@@ -12,7 +12,6 @@ typedef enum {
     DIE   = 1 << 1
 } CarpFlags;
 
-/* TODO newline should disable the file line backtrace madness  */
 static char *
 vcarp_message (CarpFlags flags, int errnum, const char *fmt, va_list args) {
     char *mesg = NULL;
@@ -54,13 +53,42 @@ vwarn_at_loc (CarpFlags flags, const char *file, const char *func, int line,
         exit(255);
 }
 
+/* Returns the part of the library file name that is important, doesn't modify
+or allocate anything so it will find its location and how long it is.  */
+static const char *
+canonical_lib (const char *f, int *n) {
+    const char *fs = nstrip(f, 0, 1);
+    *n = 0;
+    if (!fs)
+        return NULL;
+    if (!mystrncmp(fs, "lib", 3))
+        fs += 3;
+    if (strstr(fs, "."))
+        *n = strstr(fs, ".") - fs;
+    return fs;
+}
+
+/* Compares the name of one lib with another. So, carp would match
+/usr/lib/libcarp.so.1.3, Keeping in mind that the name of the library is
+the full path on linux, but a name on windows, so long and short names can go
+both ways. And it is preferable that the user specify a short name in
+trusted_libs. */
+static int
+libcmp (const char *a, const char *b) {
+    int an, bn;
+    const char *as = canonical_lib(a, &an);
+    const char *bs = canonical_lib(b, &bn);
+    return mystrncmp(as, bs, MAX(an, bn));
+}
+
 static FuncInfo *
 get_suspect (List *stack) {
     List *p;
     FuncInfo *occurs = stack->data;
     for (p = stack; p; p = p->next) {
         FuncInfo *f = p->data;
-        if (ne(f->lib, occurs->lib))
+        if (ne(f->lib, occurs->lib) &&
+            !list_find(trusted_libs, f->lib, libcmp))
             return f;
     }
     /* Without a suspect, default to where the error occured  */

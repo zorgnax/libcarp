@@ -10,6 +10,12 @@ mystrcmp (const char *a, const char *b) {
     return a == b ? 0 : !a ? -1 : !b ? 1 : strcmp(a, b);
 }
 
+/* A strncmp that handles NULL values */
+int
+mystrncmp (const char *a, const char *b, size_t n) {
+    return a == b ? 0 : !a ? -1 : !b ? 1 : strncmp(a, b, n);
+}
+
 int
 getintenv (const char *var) {
     char *val = getenv(var);
