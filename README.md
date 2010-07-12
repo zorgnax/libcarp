@@ -93,45 +93,54 @@ This library can be configured at runtime either by setting environment
 variables or by using the carp_set() function. Each setting uses a string
 identifier and an associated data type.
 
-An example usage might be:
+An example use might be:
 
     carp_set("strip_to", 2, "verbose", 1, "trusted-libs", "pcre,foo", NULL);
     
 Here are the settings you can use:
 
 -   "verbose" int
+
     All macros show the full stack trace. This makes warn and carp the same as a
     cluck, die and croak the same as a confess.
     Defaults to environment var CARP_VERBOSE
 
 -   "muzzled" int
+
     Stack trace is never performed. This makes carp and cluck the same as warn,
     croak and confess the same as die.
     Defaults to environment var CARP_MUZZLED
 
 -   "dump-stack" int
+
     Print as much info as you can about the stack.
     Defaults to environment var CARP_DUMP_STACK
 
 -   "output" char*
+
     May be "default" to set the output back to the builtin output func.
 
 -   "output-func" func
+
     A CarpOutputFunc to output the error message.
 
 -   "strip" int
+
     The number of items to remove from the file names.
     Defaults to environment var CARP_STRIP
 
 -   "strip-to" int
+
     The number of items to keep from the file names. If strip-to is 1,
     foo/bar/baz.c becomes baz.c.
     Defaults to environment var CARP_STRIP_TO
 
 -   "suspected-libs" char*
+
     Comma separated list of lib names to remove from the list of trusted libs.
 
 -   "trusted-libs" char*
+
     Comma separated list of lib names to be trusted.
     Defaults to environment var CARP_TRUSTED_LIBS
 
