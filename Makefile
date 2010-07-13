@@ -26,7 +26,7 @@ ifdef GNU
 	prove -e '' t/*-test t/trusted-libs
 else
 	perl -e "system 'prove', '-q', '-m', '-e', '', \
-	glob('t/*-test.exe'), 'trusted-libs.exe'"
+	glob('t/*-test.exe'), 't/trusted-libs.exe'"
 endif
 
 .PHONY: clean

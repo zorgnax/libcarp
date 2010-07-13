@@ -9,6 +9,8 @@ main () {
     setvbuf(stdout, NULL, _IONBF, 0);
     plan(3);
 
+    carp_set("strip-to", 1, NULL);
+    
     expected = "carp from bara at foo.c line 55\n";
     is(fooe(), expected, "carp in bar blames foo");
     

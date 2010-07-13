@@ -13,6 +13,8 @@ mystrcmp (const char *a, const char *b) {
 /* A strncmp that handles NULL values */
 int
 mystrncmp (const char *a, const char *b, size_t n) {
+    if (!n)
+        return mystrcmp(a, b);
     return a == b ? 0 : !a ? -1 : !b ? 1 : strncmp(a, b, n);
 }
 
