@@ -25,7 +25,7 @@ struct _List {
 };
 
 List *list_push   (List *list, void *data);
-void  list_free   (List *list, void (*func) ());
+void  list_free   (List *list, void (*freefunc) ());
 List *list_remove (List *list, void *data, int (*cmpfunc) (),
                    void (*freefunc) ());
 List *list_find   (List *list, void *data, int (*cmpfunc) ());

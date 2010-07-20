@@ -15,12 +15,12 @@ list_push (List *list, void *data) {
 }
 
 void
-list_free (List *list, void (*func) ()) {
+list_free (List *list, void (*freefunc) ()) {
     List *item, *next;
     for (item = list; item; item = next) {
         next = item->next;
-        if (func)
-            func(item->data);
+        if (freefunc)
+            freefunc(item->data);
         free(item);
     }
 }
@@ -45,7 +45,7 @@ list_remove (List *list, void *data, int (*cmpfunc) (), void (*freefunc) ()) {
 }
 
 List *
-list_find(List *list, void *data, int (*cmpfunc) ()) {
+list_find (List *list, void *data, int (*cmpfunc) ()) {
     List *item;
     for (item = list; item; item = item->next) {
         if (cmpfunc ? !cmpfunc(item->data, data) : (item->data == data))
